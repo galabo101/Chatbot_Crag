@@ -14,9 +14,19 @@ test_*.py
 *_test.py
 quick_test.py
 tests/
+test.py
+test_results.json
+test_result.txt
 
-# Editor config
-.vscode/
+# Benchmarks
+benchmark*.py
+benchmark_results_*.json
+evaluation/results/
+
+
+# Documentation & Info
+information/
+
 .idea/
 *.swp
 

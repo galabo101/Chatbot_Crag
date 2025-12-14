@@ -1,0 +1,6 @@
+
+{
+    "python.defaultInterpreterPath": ".\\venv_bdu_chatbot\\Scripts\\python.exe",
+
+    "python.terminal.activateEnvInCurrentTerminal": true
+}

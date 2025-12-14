@@ -12,7 +12,7 @@
 ### Bước 1: Clone repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/galabo101/Chatbot_Crag.git
 cd Chatbot_Crag
 ```
 

@@ -1,7 +1,3 @@
-"""
-Indexer - Read chunks.jsonl and upload to Qdrant
-"""
-
 import json
 from tqdm import tqdm
 from qdrant_client import QdrantClient
@@ -27,23 +23,16 @@ class QdrantIndexer:
         print("✅ Model loaded")
     
     def _generate_uuid(self, chunk_id: str) -> str:
-        """Generate consistent UUID from chunk_id"""
         hash_obj = hashlib.md5(chunk_id.encode())
         return hash_obj.hexdigest()[:32]
     
     def embed(self, text: str):
-        """Embed single text"""
-        return self.model.encode(text, convert_to_numpy=True)
-    
+        return self.model.encode(text, convert_to_numpy=True)    
     def index_jsonl(self, jsonl_path: str, batch_size: int = 100):
-
-        print(f"\n📄 Reading chunks from: {jsonl_path}")
-        
+        print(f"\n📄 Reading chunks from: {jsonl_path}")        
         with open(jsonl_path, "r", encoding="utf-8") as f:
-            lines = [line.strip() for line in f if line.strip()]
-        
-        print(f"📊 Total chunks: {len(lines)}")
-        
+            lines = [line.strip() for line in f if line.strip()]        
+        print(f"📊 Total chunks: {len(lines)}")        
         total_indexed = 0
         
         for i in tqdm(range(0, len(lines), batch_size), desc="Indexing batches"):
@@ -58,20 +47,17 @@ class QdrantIndexer:
                     chunk_id = item.get("chunk_id", f"chunk_{total_indexed}")
                     
                     if not content:
-                        continue
-                    
-                    # Embed content (tóm tắt) để tìm kiếm
+                        continue                    
+                    # Embed content để tìm kiếm
                     vector = self.embed(content)
-                    point_id = self._generate_uuid(chunk_id)
-                    
+                    point_id = self._generate_uuid(chunk_id)                    
                     # Build payload
                     payload = {
                         "chunk_id": chunk_id,
                         "content": content,
                         "url": item.get("url", "unknown"),
                         "type": item.get("type", "text"),
-                    }
-                    
+                    }                    
                     # Thêm metadata
                     metadata = item.get("metadata", {})
                     
@@ -119,8 +105,7 @@ class QdrantIndexer:
 if __name__ == "__main__":
     print("="*60)
     print("QDRANT INDEXER")
-    print("="*60)
-    
+    print("="*60)    
     # Chọn model và collection
     COLLECTION_NAME = "bdu_chunks_gemma"
     MODEL_NAME = "google/embeddinggemma-300m"
@@ -129,8 +114,7 @@ if __name__ == "__main__":
         qdrant_path="./qdrant_data",
         collection_name=COLLECTION_NAME,
         embedding_model=MODEL_NAME
-    )
-    
+    )    
     indexer.index_jsonl("./data/chunks.jsonl", batch_size=100)
     
     print("\n" + "="*60)

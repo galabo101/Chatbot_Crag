@@ -7,14 +7,13 @@ from collections import Counter
 import pandas as pd
 import json
 from datetime import datetime
-import fitz  # PyMuPDF
+import fitz 
 from docx import Document
 from groq import Groq
 from src.embedding.indexer import QdrantIndexer
 from src.security.security import SecurityManager 
 from langchain_text_splitters import RecursiveCharacterTextSplitter 
 from dotenv import load_dotenv
-
 load_dotenv()
 
 # --- CẤU HÌNH ---
@@ -26,9 +25,7 @@ DB_FILE = "chat_history.db"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STOPWORDS_PATH = os.path.join(BASE_DIR, "data", "vietnamese-stopwords.txt")
 
-# Khởi tạo Security Manager
 security_manager = SecurityManager()
-
 
 text_splitter = RecursiveCharacterTextSplitter(
     chunk_size=1000,
@@ -37,14 +34,11 @@ text_splitter = RecursiveCharacterTextSplitter(
     length_function=len
 )
 
-
 def load_vietnamese_stopwords():
-    """Đọc file stopwords từ đĩa"""
     default_stopwords = {
         "không", "được", "những", "trong", "nhưng", "cũng", "này", 
         "đang", "với", "theo", "rằng", "việc", "người", "chúng", "của", "và", "là"
-    }
-    
+    }    
     if os.path.exists(STOPWORDS_PATH):
         try:
             with open(STOPWORDS_PATH, "r", encoding="utf-8") as f:
@@ -54,9 +48,8 @@ def load_vietnamese_stopwords():
             return default_stopwords
     return default_stopwords
 
-def get_chat_stats():
-    """Lấy thống kê tổng quan"""
-    try:
+def get_chat_stats():  
+    try:  #Lấy thống kê tổng quan
         conn = sqlite3.connect(DB_FILE)
         df_convs = pd.read_sql("SELECT COUNT(*) as cnt FROM conversations", conn)
         total_convs = df_convs.iloc[0]['cnt'] if not df_convs.empty else 0
@@ -84,8 +77,7 @@ def get_chat_stats():
         }
 
 def get_top_keywords():
-    """Phân tích từ khóa nổi bật"""
-    try:
+    try:  #Phân tích từ khóa nổi bật
         stopwords = load_vietnamese_stopwords()
         
         conn = sqlite3.connect(DB_FILE)
@@ -105,10 +97,6 @@ def get_top_keywords():
     except Exception as e:
         print(f"Keyword Error: {e}")
         return []
-
-# ============================================
-# PHẦN 3: VISION PARSER (LLAMA 4 SCOUT)
-# ============================================
 
 class GroqParser:
     def __init__(self):
@@ -154,9 +142,6 @@ Yêu cầu bắt buộc:
             print(f"   ❌ Bỏ qua trang {page_num}: {str(e)}")
             return ""
 
-# ============================================
-# PHẦN 4: HÀM XỬ LÝ CHÍNH (UPLOAD PIPELINE)
-# ============================================
 
 def process_uploaded_file(uploaded_file):
     
@@ -169,8 +154,7 @@ def process_uploaded_file(uploaded_file):
     try:
         os.makedirs(save_dir, exist_ok=True)
         safe_filename = security_manager.get_safe_filename(uploaded_file.name)
-        file_path = os.path.join(save_dir, safe_filename)
-        
+        file_path = os.path.join(save_dir, safe_filename)        
         # Đọc dữ liệu vào bộ nhớ đệm
         file_bytes = uploaded_file.getbuffer()
         with open(file_path, "wb") as f:
@@ -179,9 +163,8 @@ def process_uploaded_file(uploaded_file):
         parser = GroqParser()
         full_markdown_text = ""
         original_display_name = uploaded_file.name
-        doc_type = "text_plain" # Mặc định
-        
-        # === A. PDF (Vision) ===
+        doc_type = "text_plain" # Mặc định        
+
         if original_display_name.lower().endswith('.pdf'):
             doc_type = "text_markdown"
             try:
@@ -197,7 +180,6 @@ def process_uploaded_file(uploaded_file):
                     time.sleep(2) 
             except Exception as e: print(f"Lỗi PDF: {e}")
 
-        # === B. ẢNH PNG/JPG (Vision - MỚI) ===
         elif original_display_name.lower().endswith(('.png', '.jpg', '.jpeg', '.webp')):
             doc_type = "image_description"
             try:
@@ -207,7 +189,6 @@ def process_uploaded_file(uploaded_file):
                 full_markdown_text = f"**[Mô tả hình ảnh: {original_display_name}]**\n\n{image_desc}"
             except Exception as e: print(f"Lỗi Ảnh: {e}")
 
-        # === C. EXCEL (Pandas) ===
         elif original_display_name.lower().endswith('.xlsx'):
             doc_type = "table_markdown"
             try:
@@ -216,7 +197,6 @@ def process_uploaded_file(uploaded_file):
                 print(f"📊 Đã đọc Excel: {len(df)} dòng")
             except Exception as e: print(f"Lỗi Excel: {e}")
 
-        # === D. JSON (Text - MỚI) ===
         elif original_display_name.lower().endswith('.json'):
             doc_type = "json_text"
             try:
@@ -224,21 +204,18 @@ def process_uploaded_file(uploaded_file):
                 json_content = json.load(open(file_path, 'r', encoding='utf-8'))
                 full_markdown_text = json.dumps(json_content, ensure_ascii=False, indent=2)
                 print(f"DATA Đã đọc JSON")
-            except Exception as e: print(f"Lỗi JSON: {e}")
-                
-        # === E. WORD (Python-docx) ===
+            except Exception as e: print(f"Lỗi JSON: {e}")                
+   
         elif original_display_name.endswith('.docx'):
             try:
                 doc = Document(file_path)
                 full_markdown_text = "\n".join([para.text for para in doc.paragraphs])
-            except: pass
-            
-        # === F. TXT ===
+            except: pass            
         else: 
             try: full_markdown_text = str(uploaded_file.read(), "utf-8")
             except: pass
 
-        # === CHUNKING & INDEXING (Dùng chung cho tất cả) ===
+        # CHUNKING & INDEXING
         chunks_data = []
         if full_markdown_text and full_markdown_text.strip():
             text_chunks = text_splitter.split_text(full_markdown_text)

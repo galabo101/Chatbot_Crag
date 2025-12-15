@@ -1,21 +1,13 @@
-"""
-Multi-Query Retriever
-Retrieve for multiple sub-queries and merge results intelligently
-"""
-
 from typing import List, Dict, Any
 from collections import defaultdict
 import sys
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
-
 from retrieval.crag_retriever import CRAGRetriever
 
-
 class MultiQueryRetriever:
-    def __init__(self, crag_retriever: CRAGRetriever):
-        """Initialize Multi-Query Retriever"""
+    def __init__(self, crag_retriever: CRAGRetriever):      
         self.retriever = crag_retriever
         print("✅ MultiQueryRetriever initialized")
     
@@ -24,16 +16,6 @@ class MultiQueryRetriever:
         sub_queries: List[str],
         top_k_per_query: int = 3
     ) -> Dict[str, Any]:
-        """
-        Retrieve for multiple sub-queries and merge results
-        
-        Returns:
-            {
-                "merged_chunks": Final merged chunks,
-                "per_query_results": Results per sub-query,
-                "stats": Statistics
-            }
-        """
         print(f"\n🔍 Multi-Query Retrieval for {len(sub_queries)} quer{'ies' if len(sub_queries) > 1 else 'y'}")
         
         per_query_results = {}
@@ -50,15 +32,13 @@ class MultiQueryRetriever:
             
             chunks = result["refined_chunks"]
             per_query_results[sub_q] = chunks
-            
-            # Tag chunks with source query for tracking
+
             for chunk in chunks:
                 chunk["source_query"] = sub_q
             
             all_chunks.extend(chunks)
-            print(f"      → {len(chunks)} chunks")
-        
-        # Merge and deduplicate
+            print(f"      → {len(chunks)} chunks")        
+
         merged_chunks = self._merge_chunks(all_chunks)
         
         print(f"\n📊 Merge Stats:")
@@ -76,17 +56,9 @@ class MultiQueryRetriever:
         }
     
     def _merge_chunks(self, chunks: List[Dict]) -> List[Dict]:
-        """
-        Intelligent chunk merging:
-        1. Remove exact duplicates (same chunk_id)
-        2. Sort by score (highest first)
-        3. Diversity: max 3 chunks per URL
-        4. Keep top 10 overall
-        """
         if not chunks:
             return []
-        
-        # Deduplicate by chunk_id
+
         seen_ids = set()
         deduped = []
         
@@ -98,8 +70,7 @@ class MultiQueryRetriever:
         
         # Sort by score
         deduped.sort(key=lambda x: x.get("score", 0), reverse=True)
-        
-        # Ensure diversity - max 3 chunks per URL
+
         url_counts = defaultdict(int)
         diverse_chunks = []
         

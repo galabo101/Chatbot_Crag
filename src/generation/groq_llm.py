@@ -9,9 +9,7 @@ from config import LLM_MODEL, TEMPERATURE, MAX_TOKENS
 load_dotenv()
 
 
-class SimpleCache:
-    """Simple dict cache"""
-    
+class SimpleCache:    
     def __init__(self, max_size: int = 50):
         self.cache = {}
         self.max_size = max_size
@@ -30,7 +28,6 @@ class SimpleCache:
             self.cache.clear()
         key = self._hash_key(query, chunks)
         self.cache[key] = response
-
 
 class GroqLLM:
     def __init__(self, api_key: str = None, enable_cache: bool = True):
@@ -129,9 +126,7 @@ TRẢ LỜI:"""
         original_query: str,
         sub_queries: List[str],
         context_chunks: List[Dict]
-    ) -> str:
-        """Prompt for multi-intent query"""
-        
+    ) -> str:        
         context_parts = []
         for i, chunk in enumerate(context_chunks, 1):
             content = chunk.get("full_content", chunk.get("content", ""))
@@ -168,8 +163,6 @@ TRẢ LỜI:"""
         return prompt
     
     def _call_with_failover(self, prompt: str) -> Optional[str]:
-        """Call LLM with model failover"""
-        
         sorted_models = sorted(
             self.model_pool, 
             key=lambda m: self.failure_counts[m]
@@ -195,9 +188,8 @@ TRẢ LỜI:"""
             except Exception as e:
                 error_msg = str(e).lower()
                 self.failure_counts[model_name] += 1
-                print(f"[LLM] ❌ {model_name}: {str(e)[:100]}")
-                
-                # Rate limit → retry after 2s
+                print(f"[LLM] ❌ {model_name}: {str(e)[:100]}")                
+ 
                 if "rate" in error_msg or "limit" in error_msg:
                     print(f"[LLM] ⏳ Rate limit, waiting 2s...")
                     time.sleep(2)
@@ -218,15 +210,11 @@ TRẢ LỜI:"""
         return None
     
     def generate(self, query: str, context_chunks: List[Dict]) -> Dict[str, Any]:
-       
-        
-        # Check cache
         if self.enable_cache:
             cached = self.cache.get(query, context_chunks)
             if cached:
                 print("[LLM] 💾 Cache hit")
-                return cached
-        
+                return cached        
         # Build prompt và gọi LLM
         prompt = self.build_simple_prompt(query, context_chunks)
         answer = self._call_with_failover(prompt)

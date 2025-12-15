@@ -1,50 +1,39 @@
-"""
-Query Decomposer - Hybrid Approach
-Fast keyword detection + LLM decomposition when needed
-"""
-
 from typing import List, Dict
 import re
 import json
 from groq import Groq
 import os
 from dotenv import load_dotenv
-
 load_dotenv()
 
 
 class QueryDecomposer:
     def __init__(self, groq_api_key: str = None):
         api_key = groq_api_key or os.getenv("GROQ_API_KEY")
-        self.client = Groq(api_key=api_key)
-        
-        # Keywords phải đứng giữa 2 mệnh đề có nghĩa
+        self.client = Groq(api_key=api_key)        
+    
         self.multi_intent_patterns = [
-            r'.{10,}\s+và\s+.{10,}',      # "...và..." (cả 2 vế > 10 ký tự)
-            r'.{10,}\s+hay\s+.{10,}',     # "...hay..."
-            r'.{10,}\s+hoặc\s+.{10,}',    # "...hoặc..."
-            r'.{10,}\s+còn\s+.{10,}',     # "...còn..."
-            r'.{10,}\s+ngoài ra\s+.{10,}' # "...ngoài ra..."
+            r'.{10,}\s+và\s+.{10,}',      
+            r'.{10,}\s+hay\s+.{10,}',     
+            r'.{10,}\s+hoặc\s+.{10,}',    
+            r'.{10,}\s+còn\s+.{10,}',     
+            r'.{10,}\s+ngoài ra\s+.{10,}' 
         ]
         
         print("✅ QueryDecomposer initialized")
     
     def should_decompose(self, query: str) -> Dict[str, any]:
-        """Fast heuristic check - NO LLM call"""
         query_lower = query.lower().strip()
-        signals = []
-        
-        # Signal 1: Multi-intent patterns (phải có 2 vế đủ dài)
+        signals = []        
+
         for pattern in self.multi_intent_patterns:
             if re.search(pattern, query_lower):
                 signals.append(("multi_clause", 0.8))
-                break
-        
-        # Signal 2: Multiple question marks
+                break        
+
         if query.count("?") >= 2:
-            signals.append(("multiple_questions", 0.9))
-        
-        # Signal 3: Enumeration rõ ràng (1., 2., a., b.)
+            signals.append(("multiple_questions", 0.9))       
+
         if re.search(r'[0-9]\.\s+\w+.*[0-9]\.\s+\w+', query):
             signals.append(("enumeration", 0.85))
         
@@ -56,7 +45,7 @@ class QueryDecomposer:
             }
         
         confidence = sum(score for _, score in signals) / len(signals)
-        should_decompose = confidence >= 0.75  # Tăng threshold
+        should_decompose = confidence >= 0.75
         
         return {
             "should_decompose": should_decompose,
@@ -65,7 +54,6 @@ class QueryDecomposer:
         }
     
     def decompose(self, query: str) -> List[str]:
-        """Main decomposition logic"""
         check_result = self.should_decompose(query)
         
         if not check_result["should_decompose"]:
@@ -75,10 +63,9 @@ class QueryDecomposer:
         print(f"[Decomposer] Complex query detected - {check_result['reason']}")
         
         try:
-            sub_queries = self._llm_decompose(query)
-            
-            # Validation: Nếu LLM trả về > 1 nhưng giống nhau hoặc vô nghĩa -> giữ nguyên
-            if len(sub_queries) > 1:
+            sub_queries = self._llm_decompose(query)            
+           
+            if len(sub_queries) > 1: # Validation nếu LLM trả về > 1 nhưng giống nhau hoặc vô nghĩa -> giữ nguyên
                 # Check nếu sub-queries quá ngắn hoặc giống query gốc
                 valid_subs = [sq for sq in sub_queries if len(sq) > 15 and sq.lower() != query.lower()]
                 if len(valid_subs) < 2:
@@ -93,9 +80,8 @@ class QueryDecomposer:
             print(f"[Decomposer] ✅ Split into {len(sub_queries)} sub-queries:")
             for i, sq in enumerate(sub_queries, 1):
                 print(f"   [{i}] {sq}")
-            
-            # Giải pháp 2: Soft limit - khi quá nhiều sub-queries
-            if len(sub_queries) > 3:
+                        
+            if len(sub_queries) > 3:#  khi quá nhiều sub-queries
                 print("[Decomposer] ⚠️ Câu hỏi quá phức tạp, yêu cầu người dùng chia nhỏ")
                 return ["TOO_COMPLEX"]
             
@@ -105,8 +91,7 @@ class QueryDecomposer:
             print(f"[Decomposer] ❌ Error: {e}, using original query")
             return [query]
     
-    def _llm_decompose(self, query: str) -> List[str]:
-        """Use LLM to decompose query"""
+    def _llm_decompose(self, query: str) -> List[str]:    
         prompt = f"""Phân tách câu hỏi phức tạp thành các câu hỏi đơn giản, độc lập.
 
 QUY TẮC QUAN TRỌNG:
@@ -115,7 +100,6 @@ QUY TẮC QUAN TRỌNG:
 3. Mỗi câu hỏi con phải HOÀN CHỈNH, độc lập
 4. KHÔNG tạo thêm câu hỏi không có trong câu gốc
 5. TỐI ĐA 3 câu hỏi con
-
 
 VÍ DỤ ĐÚNG:
 Input: "Học phí CNTT bao nhiêu và trường có học bổng không?"

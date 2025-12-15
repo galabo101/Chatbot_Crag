@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 import hashlib
 ADMIN_PASS_HASH = hashlib.sha256("admin123".encode()).hexdigest()
 
-# --- 1. SETUP & CONFIG ---
+# SETUP và CONFIG
 project_root = Path(__file__).parent.parent
 os.chdir(project_root)
 sys.path.insert(0, str(project_root))
@@ -19,8 +19,6 @@ from src.database import (
     init_db, create_conversation, save_message, 
     get_user_conversations, get_messages, delete_conversation, delete_all_conversations
 )
-
-# Initialize Database
 init_db()
 
 st.set_page_config(
@@ -29,12 +27,10 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
-# [MỚI] Khởi tạo trạng thái Admin
-if "admin_mode" not in st.session_state:
+if "admin_mode" not in st.session_state: # Khởi tạo trạng thái Admin
     st.session_state.admin_mode = False
 
-# --- 2. CUSTOM CSS STYLING ---
+# CSS STYLING
 st.markdown("""
 <style>
 section[data-testid="stSidebar"] p, 
@@ -47,7 +43,7 @@ section[data-testid="stSidebar"] p,
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. AUTHENTICATION & USER MANAGEMENT ---
+# AUTHENTICATION và USER MANAGEMENT
 cookie_manager = stx.CookieManager(key="bdu_cookie_mgr")
 
 def get_stable_user_id():
@@ -58,28 +54,22 @@ def get_stable_user_id():
     
     if not cookie_user_id:
         if "auth_retry_count" not in st.session_state:
-            st.session_state.auth_retry_count = 0
-        
-        # ✅ FIX: Tăng retry count và delay để chờ cookie load xong
-        # Cookie manager cần vài render cycles để đọc cookie từ browser
-        if st.session_state.auth_retry_count < 5:  # Tăng từ 2 lên 5
+            st.session_state.auth_retry_count = 0   
+        if st.session_state.auth_retry_count < 5:  # Cookie manager cần vài render cycles để đọc cookie từ browser
             st.session_state.auth_retry_count += 1
-            time.sleep(0.5)  # Tăng từ 0.3s lên 0.5s
-            st.rerun()
-            
-        # Chỉ tạo user_id mới khi chắc chắn không có cookie
-        new_id = str(uuid.uuid4())
+            time.sleep(0.5)  
+            st.rerun()         
+        new_id = str(uuid.uuid4())# Chỉ tạo user_id mới khi chắc chắn không có cookie
         st.session_state.user_id = new_id
         cookie_manager.set("bdu_user_id", new_id, expires_at=datetime.now() + timedelta(days=365))
-        return new_id
-    
+        return new_id    
     st.session_state.user_id = cookie_user_id
     st.session_state.auth_retry_count = 0 
     return cookie_user_id
 
 user_id = get_stable_user_id()
 
-# --- 4. SESSION & CHAT STATE MANAGEMENT ---
+# SESSION và CHAT STATE MANAGEMENT
 def get_target_chat_id():
     url_chat_id = st.query_params.get("chat_id")
     user_chats = [c[0] for c in get_user_conversations(user_id)]
@@ -97,7 +87,6 @@ if "current_chat_id" not in st.session_state or st.session_state.current_chat_id
     st.session_state.current_chat_id = target_id
     st.session_state.messages = get_messages(target_id)
     st.query_params["chat_id"] = target_id
-# ✅ FIX: Đảm bảo messages luôn được load từ DB nếu session bị reset
 elif "messages" not in st.session_state or len(st.session_state.messages) == 0:
     st.session_state.messages = get_messages(st.session_state.current_chat_id)
 
@@ -108,7 +97,7 @@ if url_id_check and url_id_check != st.session_state.current_chat_id:
         st.session_state.current_chat_id = url_id_check
         st.session_state.messages = get_messages(url_id_check)
 
-# --- 5. AI ENGINE LOADING ---
+#  AI ENGINE LOADING
 @st.cache_resource
 def load_embedding_model():
     from sentence_transformers import SentenceTransformer
@@ -123,7 +112,7 @@ def load_pipeline(_embedding_model):
     )
 
 if "pipeline_loaded" not in st.session_state:
-    with st.spinner("🔄 Đang khởi động hệ thống AI..."):
+    with st.spinner("🔄 Đang khởi động hệ thống..."):
         embedding_model = load_embedding_model()
         pipeline = load_pipeline(embedding_model)
         st.session_state.pipeline_loaded = True
@@ -131,7 +120,7 @@ if "pipeline_loaded" not in st.session_state:
     st.toast("✅ Hệ thống đã sẵn sàng!", icon="🚀")
     time.sleep(0.5)
 
-# --- 6. SIDEBAR CONTROLLER ---
+# SIDEBAR CONTROLLER
 with st.sidebar:
     st.markdown("### 💬 Quản lý hội thoại")
     
@@ -150,7 +139,6 @@ with st.sidebar:
     if not history:
         st.info("Chưa có lịch sử hội thoại", icon="ℹ️")
     else:
-        # ✅ FIX: Thêm current_chat_id vào session nếu chưa có
         if "current_chat_id" not in st.session_state and history:
             st.session_state.current_chat_id = history[0][0]
             st.session_state.messages = get_messages(history[0][0])
@@ -172,16 +160,15 @@ with st.sidebar:
             with col2:
                 if st.button("🗑", key=f"del_{conv_id}", help="Xóa hội thoại"):
                     delete_conversation(conv_id)
-                    
-                    # ✅ FIX: Nếu xóa chat đang active, chuyển sang chat khác
+
                     if is_active:
                         remaining_chats = [c[0] for c in get_user_conversations(user_id)]
                         if remaining_chats:
                             st.session_state.current_chat_id = remaining_chats[0]
                             st.session_state.messages = get_messages(remaining_chats[0])
                             st.query_params["chat_id"] = remaining_chats[0]
-                        else:
-                            # Không còn chat nào, tạo mới
+
+                        else:# Không còn chat nào, tạo mới                            
                             new_id = create_conversation(user_id)
                             st.session_state.current_chat_id = new_id
                             st.session_state.messages = []
@@ -192,23 +179,24 @@ with st.sidebar:
             st.divider()
             if st.button("🗑️ Xóa tất cả lịch sử", use_container_width=True):
                 delete_all_conversations(user_id)
-                # ✅ FIX: Tạo chat mới sau khi xóa hết
                 new_id = create_conversation(user_id)
                 st.session_state.current_chat_id = new_id
                 st.session_state.messages = []
                 st.query_params["chat_id"] = new_id
                 st.rerun()
 
-    # --- [MỚI] KHU VỰC LOGIN ADMIN Ở SIDEBAR ---
-    st.divider()
+    st.divider()    # LOGIN ADMIN
     if st.session_state.admin_mode:
-        if st.session_state.admin_login_time:
+        if "admin_login_time" in st.session_state and st.session_state.admin_login_time:
             if (datetime.now() - st.session_state.admin_login_time).seconds > 600:
                 st.session_state.admin_mode = False
+                st.session_state.admin_login_time = None
                 st.warning("Phiên quản trị hết hạn. Vui lòng đăng nhập lại.")
                 st.rerun()
         if st.button("⬅️ Quay lại Chatbot", use_container_width=True):
             st.session_state.admin_mode = False
+            if "admin_login_time" in st.session_state:
+                st.session_state.admin_login_time = None
             st.rerun()
     else:
         with st.expander("🔐 Quản trị viên"):
@@ -216,22 +204,22 @@ with st.sidebar:
             if st.button("Đăng nhập"):
                 if hashlib.sha256(admin_pass.encode()).hexdigest() == ADMIN_PASS_HASH:
                     st.session_state.admin_mode = True
+                    st.session_state.admin_login_time = datetime.now()
                     st.rerun()
                 else:
                     st.error("Sai mật khẩu")
 
-# --- 7. MESSAGE HANDLING LOGIC ---
+# MESSAGE HANDLING
 def process_query(query_text: str):
-    """Xử lý câu hỏi người dùng và sinh câu trả lời"""
-    
-    # A. Hiển thị & Lưu User Message
-    st.session_state.messages.append({"role": "user", "content": query_text})
+
+   
+    st.session_state.messages.append({"role": "user", "content": query_text}) # Hiển thị và Lưu User Message
     save_message(st.session_state.current_chat_id, "user", query_text)  # Không có sources
     
     with st.chat_message("user", avatar="👤"):
         st.markdown(query_text)
     
-    # B. Xử lý Backend
+    # Xử lý Backend
     with st.chat_message("assistant", avatar="🎓"):
         with st.spinner("🔍 Đang tìm kiếm thông tin..."):
             try:
@@ -245,9 +233,8 @@ def process_query(query_text: str):
                     answer = result["answer"]
                     st.markdown(answer)
                     sources = result.get("sources", [])
-                    
-                    # Hiển thị sources
-                    if sources:
+                   
+                    if sources: # Hiển thị sources
                         with st.expander("📚 Nguồn tham khảo"):
                             for i, src in enumerate(sources[:5], 1):
                                 s_type = src.get('type', 'text').upper()
@@ -264,16 +251,13 @@ def process_query(query_text: str):
                 answer = f"⚠️ Xin lỗi, hệ thống đang gặp sự cố."
                 st.error(f"System Error: {str(e)}")
                 sources = []
-    
-    # C. Lưu vào Session State VÀ Database (KÈM SOURCES)
-    st.session_state.messages.append({
+        
+    st.session_state.messages.append({ # Lưu vào Session State VÀ Database
         "role": "assistant", 
         "content": answer,
         "sources": sources
     })
-    
-    # Lưu tin nhắn kèm sources vào DB
-    save_message(
+    save_message( # Lưu tin nhắn kèm sources vào DB
         st.session_state.current_chat_id, 
         "assistant", 
         answer, 
@@ -284,19 +268,14 @@ def process_query(query_text: str):
         st.rerun()
 
 
-# --- 8. MAIN INTERFACE (CONTROLLER) ---
-
-# [MỚI] Điều hướng: Nếu Admin Mode -> Render Dashboard, Ngược lại -> Render Chat
-if st.session_state.admin_mode:
+# MAIN INTERFACE
+if st.session_state.admin_mode: # Điều hướng: Nếu Admin Mode -> Render Dashboard, Ngược lại -> Render Chat
     from app.admin_page import render_admin_dashboard
     render_admin_dashboard()
 
-else:
-    # --- GIAO DIỆN CHAT CHÍNH (LOGIC CŨ GIỮ NGUYÊN) ---
+else: # GIAO DIỆN CHAT CHÍNH     
     st.title("🎓 Chatbot Tư Vấn Tuyển Sinh BDU")
-    st.caption("Hệ thống trả lời tự động dựa trên dữ liệu tuyển sinh chính thức.")
-
-    # --- Gợi ý (Empty State) ---
+    st.caption("Hệ thống trả lời tự động dựa trên dữ liệu tuyển sinh.")  
     if not st.session_state.get("messages"):
         st.markdown("### 💡 Những câu hỏi thường gặp")
         
@@ -319,21 +298,19 @@ else:
         
         st.divider()
 
-    # --- Render Chat History ---
+    # Render Chat History 
     for msg in st.session_state.get("messages", []):
         avatar = "🎓" if msg["role"] == "assistant" else "👤"
         with st.chat_message(msg["role"], avatar=avatar):
-            st.markdown(msg["content"])
+            st.markdown(msg["content"])            
             
-            # Render sources nếu message có
             if msg.get("sources"):
                 with st.expander("📚 Nguồn tham khảo"):
                     for i, src in enumerate(msg["sources"][:5], 1):
                         s_type = src.get('type', 'text').upper()
                         s_url = src.get('url', '#')
-                        s_title = src.get('title', 'Tài liệu')
-                        # Fallback cho title nếu rỗng
-                        if not s_title or str(s_title).strip() == "":
+                        s_title = src.get('title', 'Tài liệu')                        
+                        if not s_title or str(s_title).strip() == "": # Fallback cho title nếu rỗng
                              s_title = src.get('chunk_id', 'N/A')
                         st.markdown(f"**{i}. [{s_type}] {s_title}**\n🔗 [Xem chi tiết]({s_url})")
 

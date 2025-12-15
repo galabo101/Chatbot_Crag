@@ -5,9 +5,7 @@ from typing import Tuple, Dict
 import os
 import uuid
 
-class SecurityManager:
-    """Handles input validation, rate limiting, and prompt injection defense"""
-    
+class SecurityManager:   
     def __init__(
         self,
         max_length: int = 500,
@@ -83,17 +81,9 @@ class SecurityManager:
         return max(0, self.max_requests - len(history))
     
     def validate_file(self, uploaded_file) -> Tuple[bool, str]:
-        """
-        Kiểm tra tính hợp lệ của file upload
-        Args:
-            uploaded_file: Streamlit UploadedFile object
-        Returns:
-            (is_valid, error_message)
-        """
         # 1. Kiểm tra kích thước (Size Limit)
         if uploaded_file.size > self.max_file_size_bytes:
             return False, f"File quá lớn ({uploaded_file.size / 1024 / 1024:.2f}MB). Giới hạn tối đa là {self.max_file_size_bytes / 1024 / 1024}MB."
-
         # 2. Kiểm tra đuôi file (Extension Whitelist)
         file_ext = os.path.splitext(uploaded_file.name)[1].lower()
         if file_ext not in self.allowed_extensions:
@@ -103,9 +93,9 @@ class SecurityManager:
             'application/pdf', 
             'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
             'text/plain',
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', # Excel
-            'application/json', # JSON
-            'image/png', 'image/jpeg', 'image/jpg', 'image/webp' # Images
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 
+            'application/json', 
+            'image/png', 'image/jpeg', 'image/jpg', 'image/webp' 
         ]
         
         
@@ -115,9 +105,6 @@ class SecurityManager:
         return True, ""
     
     def get_safe_filename(self, original_filename: str) -> str:
-        """
-        Tạo tên file an toàn (UUID) để tránh Path Traversal và trùng lặp
-        """
         file_ext = os.path.splitext(original_filename)[1].lower()
         # Luôn đổi tên thành UUID ngẫu nhiên
         return f"{uuid.uuid4()}{file_ext}"

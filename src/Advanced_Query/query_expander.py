@@ -1,5 +1,5 @@
 
-from typing import List, Dict
+from typing import List
 import re
 import json
 from groq import Groq
@@ -7,12 +7,10 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 import os
 from dotenv import load_dotenv
-
 load_dotenv()
 
 
-class QueryExpander:
-    """LLM-based query expansion with similarity filtering"""
+class QueryExpander: 
     
     def __init__(
         self, 
@@ -22,10 +20,7 @@ class QueryExpander:
         api_key = groq_api_key or os.getenv("GROQ_API_KEY")
         self.client = Groq(api_key=api_key)
         self.model_name = "llama-3.1-8b-instant"
-        
-        # Embedding model để filter variations
-        self.embed_model = embedding_model
-        
+        self.embed_model = embedding_model        
         print("✅ QueryExpander initialized")
     
     def expand(
@@ -36,26 +31,21 @@ class QueryExpander:
         include_original: bool = True
         
         
-    ) -> List[str]:      
-        # Short/simple queries don't need expansion
-        if len(query.split()) <= 3:
+    ) -> List[str]:             
+        if len(query.split()) <= 3:  # không cần expansion
             print(f"[Expander] Query too short, no expansion")
             return [query] if include_original else []
         
-        try:
-            # Generate variations với LLM
-            raw_variations = self._llm_expand(query, num_variations)
-            
+        try: # Generate variations với LLM            
+            raw_variations = self._llm_expand(query, num_variations)            
             if not raw_variations:
                 return [query] if include_original else []
-            
-            # Filter by similarity (nếu có embedding model)
+                      
             if use_filtering and self.embed_model:
                 variations = self._filter_by_similarity(query, raw_variations, top_k=num_variations)
             else:
                 variations = raw_variations[:num_variations]
-            
-            # ✅ FIX: Tuỳ theo include_original
+                
             if include_original:
                 final_queries = [query] + variations
                 print(f"[Expander] ✅ Expanded into {len(final_queries)} queries (with original)")
@@ -74,7 +64,6 @@ class QueryExpander:
             return [query] if include_original else []
     
     def _llm_expand(self, query: str, num_variations: int) -> List[str]:
-        """Generate query variations using LLM"""
         
         prompt = f"""Bạn là hệ thống tạo biến thể câu hỏi để cải thiện tìm kiếm.
 
@@ -126,12 +115,10 @@ Trả về JSON array với {num_variations} biến thể:"""
                 v.strip() 
                 for v in variations 
                 if isinstance(v, str) and v.strip() and v.strip() != query
-            ]
-            
+            ]            
             return variations
             
-        except json.JSONDecodeError:
-            # Fallback: extract from numbered list
+        except json.JSONDecodeError:   # Fallback: lấy từ numbered list
             matches = re.findall(r'[0-9]+\.\s*"?([^"\n]+)"?', content)
             return [m.strip() for m in matches if m.strip() != query]
     
@@ -142,33 +129,21 @@ Trả về JSON array với {num_variations} biến thể:"""
         top_k: int,
         min_similarity: float = 0.5
     ) -> List[str]:
-        """
-        Filter variations by embedding similarity
-        Keep variations that are:
-        - Similar enough (> min_similarity)
-        - Not too similar (< 0.95 để tránh duplicate)
-        """
         if not variations:
             return []
         
         # Embed all
         query_vec = self.embed_model.encode(query, convert_to_numpy=True)
         var_vecs = self.embed_model.encode(variations, convert_to_numpy=True)
-        
-        # Calculate cosine similarity
-        from numpy.linalg import norm
+                
+        from numpy.linalg import norm # tính độ tương đồng cosin
         scored = []
         for i, var in enumerate(variations):
             sim = np.dot(query_vec, var_vecs[i]) / (norm(query_vec) * norm(var_vecs[i]))
-            
-            # Keep if similar enough but not duplicate
-            if min_similarity < sim < 0.95:
-                scored.append((sim, var))
-        
-        # Sort by similarity (descending)
+            if min_similarity < sim < 0.95: # giữ lại nếu đủ tương đồng
+                scored.append((sim, var))    
         scored.sort(key=lambda x: x[0], reverse=True)
-        
-        # Return top K
+
         return [var for _, var in scored[:top_k]]
 
 
@@ -177,29 +152,16 @@ Trả về JSON array với {num_variations} biến thể:"""
 # ============================================
 
 class CRAGRetrieverWithExpansion:
-    """
-    Enhanced CRAG với Query Expansion
-    """
-    
     def __init__(self, base_retriever, expander: QueryExpander):
         self.retriever = base_retriever
         self.expander = expander
     
     def retrieve(self, query: str, top_k_initial: int = 4, top_k_final: int = 2):
-        """
-        Retrieve với query expansion
-        
-        Flow:
-        1. Expand query → [q1, q2, q3]
-        2. Retrieve từng query → chunks
-        3. Merge + deduplicate
-        4. CRAG grading
-        5. Return refined chunks
-        """
-        # Step 1: Expand query
+
+        # Expand query
         expanded_queries = self.expander.expand(query, num_variations=2)
         
-        # Step 2: Retrieve for all variations
+        # Tìm kiếm tất cả các biến thể
         all_candidates = []
         seen_ids = set()
         
@@ -225,13 +187,11 @@ class CRAGRetrieverWithExpansion:
                 "action_taken": "NONE"
             }
         
-        # Step 3: CRAG grading (dùng original query)
-        graded = self.retriever.evaluate_relevance(query, all_candidates)
-        
-        # Step 4: Decide action
-        action = self.retriever.decide_action(graded)
-        
-        # Step 5: Apply correction
+        # chấm điểm CRAG - Quyết định hành động- Áp dụng hiệu chỉnh
+        graded = self.retriever.evaluate_relevance(query, all_candidates)        
+
+        action = self.retriever.decide_action(graded)   
+ 
         refined_chunks = self.retriever.apply_correction(query, graded, action)
         refined_chunks = refined_chunks[:top_k_final]
         

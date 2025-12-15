@@ -97,32 +97,27 @@ class QdrantSetup:
             print(f"   - {c.name}")
         return collections
 
-
-# ============================================
-# USAGE EXAMPLE
-# ============================================
-
 if __name__ == "__main__":
     print("="*60)
     print("QDRANT VECTOR DATABASE SETUP")
     print("="*60)
     
-    # 1. Initialize Qdrant
+    # Initialize Qdrant
     qdrant = QdrantSetup(persist_path="./qdrant_data")
     
-    qdrant.delete_collection("bdu_chunks_gemma")
+    #qdrant.delete_collection("bdu_chunks_gemma")
 
-    # 2. Create collection for BDU chatbot
+    # Create collection for BDU chatbot
     qdrant.create_collection(
         collection_name="bdu_chunks_gemma",
         vector_size=768, 
         distance_metric="Cosine"
     )
     
-    # 3. List collections
+    # List collections
     qdrant.list_collections()
     
-    # 4. Get collection info
+    # Get collection info
     qdrant.get_collection_info("bdu_chunks_gemma")
     
     print("\n" + "="*60)

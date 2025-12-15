@@ -1,11 +1,5 @@
-"""
-RAG Pipeline - Pure Orchestrator
-Coordinate all modules without business logic
-"""
-
 from dotenv import load_dotenv
 load_dotenv()
-
 import sys
 from pathlib import Path
 import time
@@ -78,7 +72,7 @@ class RAGPipeline:
         if self.verbose:
             print(f"🔎 Query: {query}\n")
         
-        # STEP 1: Query Decomposition
+        # Query Decomposition
         decompose_start = time.time()
         sub_queries = self.decomposer.decompose(query)
         decompose_time = time.time() - decompose_start
@@ -98,7 +92,7 @@ class RAGPipeline:
                 "too_complex": True
             }
         
-        # STEP 2: Retrieval
+        # Retrieval
         retrieval_start = time.time()
         refined_chunks, graded_stats = self._retrieve(sub_queries)
         retrieval_time = time.time() - retrieval_start
@@ -106,7 +100,7 @@ class RAGPipeline:
         if self.verbose:
             print(f"   ⏱️  Retrieval time: {retrieval_time:.3f}s\n")
         
-        # STEP 3: Generation
+        # Generation
         generation_start = time.time()
         generation_result = self._generate(query, sub_queries, refined_chunks)
         generation_time = time.time() - generation_start
@@ -139,9 +133,7 @@ class RAGPipeline:
             "model_type": self.model_type
         }
     
-    def _retrieve(self, sub_queries: list) -> tuple:
-        """Coordinate retrieval (single or multi-query)"""
-        
+    def _retrieve(self, sub_queries: list) -> tuple:       
         if len(sub_queries) == 1:
             # Single query retrieval
             if self.verbose:
@@ -175,9 +167,7 @@ class RAGPipeline:
         
         return refined_chunks, graded_stats
     
-    def _generate(self, query: str, sub_queries: list, chunks: list) -> dict:
-        """Coordinate generation (simple or multi-intent)"""
-        
+    def _generate(self, query: str, sub_queries: list, chunks: list) -> dict:        
         if len(sub_queries) == 1:
             return self.llm.generate(query, chunks)
         else:

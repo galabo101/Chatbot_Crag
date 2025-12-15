@@ -1,6 +1,6 @@
 import sqlite3
 import uuid
-import json  # Thêm import
+import json  
 from datetime import datetime
 
 DB_FILE = "chat_history.db"
@@ -9,15 +9,13 @@ def init_db():
     """Khởi tạo database với schema mới hỗ trợ sources"""
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
-    
-    # Bảng conversations giữ nguyên
     c.execute('''CREATE TABLE IF NOT EXISTS conversations
                  (id TEXT PRIMARY KEY, 
                   user_id TEXT, 
                   title TEXT, 
                   created_at DATETIME)''')
     
-    # Bảng messages - THÊM cột sources
+    # Bảng messages 
     c.execute('''CREATE TABLE IF NOT EXISTS messages
                  (id INTEGER PRIMARY KEY AUTOINCREMENT, 
                   conversation_id TEXT, 
@@ -26,7 +24,7 @@ def init_db():
                   sources TEXT,
                   created_at DATETIME)''')
     
-    # Migration: Thêm cột sources nếu chưa có (cho DB cũ)
+    # Thêm cột sources nếu chưa có
     try:
         c.execute("ALTER TABLE messages ADD COLUMN sources TEXT")
     except sqlite3.OperationalError:
@@ -37,15 +35,6 @@ def init_db():
 
 
 def save_message(conversation_id, role, content, sources=None):
-    """
-    Lưu tin nhắn KÈM sources
-    
-    Args:
-        conversation_id: ID cuộc hội thoại
-        role: "user" hoặc "assistant"
-        content: Nội dung tin nhắn
-        sources: List[Dict] nguồn tham khảo (chỉ cho assistant)
-    """
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     created_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -69,13 +58,7 @@ def save_message(conversation_id, role, content, sources=None):
     conn.close()
 
 
-def get_messages(conversation_id):
-    """
-    Lấy nội dung chat KÈM sources
-    
-    Returns:
-        List[Dict] với keys: role, content, sources (nếu có)
-    """
+def get_messages(conversation_id):    
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
     c.execute(
@@ -102,8 +85,6 @@ def get_messages(conversation_id):
     
     return messages
 
-
-# Các hàm khác giữ nguyên...
 def create_conversation(user_id, first_message=None):
     """Tạo cuộc hội thoại mới"""
     conn = sqlite3.connect(DB_FILE)

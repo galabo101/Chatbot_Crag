@@ -5,15 +5,11 @@ import json
 import re
 
 
-class RelevanceEvaluator:
-    """
-    Advanced Evaluator: Batch Processing + Smart Extraction + Confidence Score
-    """
-    
+class RelevanceEvaluator:    
     def __init__(self, llm_client: Groq):
         self.llm = llm_client
         self.model_name = "llama-3.1-8b-instant"
-        # Ngưỡng tin cậy: Nếu dưới mức này sẽ bị đánh tụt hạng
+        # Ngưỡng tin cậy, nếu dưới mức này sẽ bị đánh tụt hạng
         self.confidence_threshold = 0.7 
     
     def evaluate_batch(self, query: str, documents: List[Dict]) -> List[str]:
@@ -21,14 +17,12 @@ class RelevanceEvaluator:
         Đánh giá độ liên quan kèm độ tin cậy
         """
         if not documents:
-            return []
-        
+            return []        
         # 1. Chuẩn bị documents với Smart Extraction
         docs_text = ""
         for i, doc in enumerate(documents, 1):
             content = self._extract_relevant_content(query, doc, max_length=500)
-            docs_text += f"DOC {i}:\n{content}\n---\n"
-        
+            docs_text += f"DOC {i}:\n{content}\n---\n"        
         # 2. Prompt yêu cầu trả về Label + Confidence
         prompt = f"""Đánh giá tài liệu dựa trên câu hỏi.
 
@@ -92,16 +86,15 @@ CHỈ trả về JSON hợp lệ."""
                 elif "INCORRECT" in raw_label:
                     label = "INCORRECT"
                 
-                # --- LOGIC QUAN TRỌNG: Kiểm tra Confidence ---
-                # Nếu máy bảo CORRECT nhưng không tự tin (< 0.7) -> Hạ xuống AMBIGUOUS
+                
+                # Nếu CORRECT nhưng không tự tin (< 0.7) thì hạ xuống AMBIGUOUS
                 if label == "CORRECT" and confidence < self.confidence_threshold:
                     print(f"[Eval] Downgraded CORRECT (conf={confidence:.2f}) to AMBIGUOUS")
-                    label = "AMBIGUOUS"
-                # ---------------------------------------------
+                    label = "AMBIGUOUS"              
                 
                 final_labels.append(label)
             
-            # Thống kê nhanh để debug
+            # Thống kê để debug
             print(f"[Batch Eval] ✅ Rated {len(final_labels)} docs (Threshold: {self.confidence_threshold})")
             return final_labels
             
@@ -118,24 +111,21 @@ CHỈ trả về JSON hợp lệ."""
         if len(content) <= max_length:
             return content
         
-        # Lấy từ khóa (bỏ từ ngắn < 3 ký tự)
+        # Lấy từ khóa 
         query_keywords = {kw for kw in query.lower().split() if len(kw) > 2}
         
-        # Tách câu (tương đối)
+        # Tách câu 
         sentences = [s.strip() for s in re.split(r'[.!?\n]+', content) if len(s.strip()) > 10]
         
         if not sentences:
-            return content[:max_length]
-        
+            return content[:max_length]        
         # Chấm điểm câu
         scored = []
         for sent in sentences:
             score = sum(1 for kw in query_keywords if kw in sent.lower())
-            scored.append((score, sent))
-        
+            scored.append((score, sent))        
         # Sắp xếp câu điểm cao lên đầu
-        scored.sort(key=lambda x: x[0], reverse=True)
-        
+        scored.sort(key=lambda x: x[0], reverse=True)        
         # Lấy top câu sao cho không vượt quá max_length
         selected = []
         current_length = 0

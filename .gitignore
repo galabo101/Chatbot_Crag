@@ -7,7 +7,7 @@ __pycache__/
 env/
 venv/
 venv_bdu_chatbot/
-.env
+# .env  # Removed from gitignore per user request
 
 # Tests (Excluded as requested)
 test_*.py

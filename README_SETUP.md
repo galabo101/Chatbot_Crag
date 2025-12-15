@@ -112,66 +112,11 @@ pip install -r requirements.txt
 pip install torch --index-url https://download.pytorch.org/whl/cu118
 ```
 
-### Lỗi: Qdrant connection failed
-
-**Nguyên nhân**: Qdrant data chưa được khởi tạo
-
-**Giải pháp**:
-1. Kiểm tra thư mục `qdrant_data/` có tồn tại
-2. Chạy lại indexing script
-3. Kiểm tra collection name trong `src/config.py`
-
-### Lỗi: Groq API rate limit
-
-**Nguyên nhân**: Vượt quá giới hạn API
-
-**Giải pháp**:
-- Hệ thống có cơ chế failover tự động
-- Chờ vài phút rồi thử lại
-- Kiểm tra API key có hợp lệ
-
-## Kiểm tra Dependencies
-
-Chạy script kiểm tra:
-
-```bash
-python check_dependencies.py
-```
-
-Hoặc kiểm tra thủ công:
-
-```bash
-python -c "import streamlit, groq, qdrant_client, sentence_transformers, plotly, tqdm; print('✅ All dependencies OK')"
-```
-
-## Cấu trúc Dependencies
-
-### Core Dependencies
-- `streamlit`: Web framework
-- `groq`: LLM API client
-- `sentence-transformers`: Embedding models
-- `qdrant-client`: Vector database client
-
-### Optional Dependencies
-- `google-api-python-client`: Chỉ cần nếu dùng web search
-- `plotly`: Chỉ cần cho admin dashboard charts
-
-### Development Dependencies
-- `black`: Code formatter
-- `pytest`: Testing framework
 
 ## Phiên bản Python
+Hệ thống đã được test và chạy ổn định với:
+- Python 3.10.0 
 
-Hệ thống đã được test với:
-- Python 3.10.0 ✅
-- Python 3.11.x ✅ (khuyến nghị)
-- Python 3.12.x ⚠️ (có thể cần cập nhật một số packages)
+## Nếu gặp vấn đề, vui lòng liên hệ:
 
-## Liên hệ
-
-Nếu gặp vấn đề, vui lòng:
-1. Kiểm tra logs trong console
-2. Chạy `python check_dependencies.py`
-3. Kiểm tra file `.env` có đúng format
-4. Tạo issue trên repository
-
+email: 18050082@student.bdu.edu.vn

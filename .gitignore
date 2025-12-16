@@ -37,7 +37,8 @@ temp_report.*
 
 # Sensitive data (Normally we ignore data, but for this demo/thesis we keep verified data)
 # qdrant_data/  <-- COMMENTED OUT: Keep this for deployment ease
-# chat_history.db <-- OPTIONAL: Ignore if you want clean history for everyone
+chat_history.db
+data/uploaded_temp/
 
 # Large documentation files (Optional, keep if you want to back up)
 # information/DATN_CHATBOT_RAG4.docx

@@ -1,7 +1,7 @@
 import json
 from tqdm import tqdm
 from qdrant_client import QdrantClient
-from qdrant_client.models import PointStruct
+from qdrant_client.models import PointStruct, Filter, FieldCondition, MatchValue
 from sentence_transformers import SentenceTransformer
 import hashlib
 
@@ -11,16 +11,26 @@ class QdrantIndexer:
         self,
         qdrant_path: str = "./qdrant_data",
         collection_name: str = "bdu_chunks_gemma",
-        embedding_model: str = "google/embeddinggemma-300m"
+        embedding_model: str = "google/embeddinggemma-300m",
+        client: QdrantClient = None,
+        model: SentenceTransformer = None
     ):
         self.collection_name = collection_name
         
-        print(f"📦 Connecting to Qdrant: {qdrant_path}")
-        self.client = QdrantClient(path=qdrant_path)
+        if client:
+            print("✅ Using provided Qdrant client")
+            self.client = client
+        else:
+            print(f"📦 Connecting to Qdrant: {qdrant_path}")
+            self.client = QdrantClient(path=qdrant_path)
         
-        print(f"🔧 Loading embedding model: {embedding_model}")
-        self.model = SentenceTransformer(embedding_model)
-        print("✅ Model loaded")
+        if model:
+            print("✅ Using provided embedding model")
+            self.model = model
+        else:
+            print(f"🔧 Loading embedding model: {embedding_model}")
+            self.model = SentenceTransformer(embedding_model)
+            print("✅ Model loaded")
     
     def _generate_uuid(self, chunk_id: str) -> str:
         hash_obj = hashlib.md5(chunk_id.encode())
@@ -28,6 +38,102 @@ class QdrantIndexer:
     
     def embed(self, text: str):
         return self.model.encode(text, convert_to_numpy=True)    
+    def get_file_chunks(self, title: str) -> list[dict]:
+        """Lấy chi tiết các chunks của một file"""
+        try:
+            chunks = []
+            next_offset = None
+            
+            # Filter chỉ lấy chunk của file này
+            title_filter = Filter(
+                must=[
+                    FieldCondition(
+                        key="title",
+                        match=MatchValue(value=title)
+                    )
+                ]
+            )
+
+            while True:
+                records, next_offset = self.client.scroll(
+                    collection_name=self.collection_name,
+                    scroll_filter=title_filter,
+                    limit=100,
+                    offset=next_offset,
+                    with_payload=True,
+                    with_vectors=False
+                )
+                
+                for record in records:
+                    payload = record.payload
+                    chunks.append({
+                        "id": record.id,
+                        "chunk_id": payload.get("chunk_id"),
+                        "content": payload.get("content"),
+                        "length": len(payload.get("content", "")),
+                        "type": payload.get("type", "text") 
+                    })
+                        
+                if next_offset is None:
+                    break
+            
+            # Sort by chunk_id (thường là có timestamp và index) để dễ đọc
+            return sorted(chunks, key=lambda x: x.get("chunk_id", ""))
+        except Exception as e:
+            print(f"❌ Lỗi lấy chunks của file {title}: {e}")
+            return []
+
+    def get_all_titles(self) -> list[str]:
+        """Lấy danh sách tất cả các file title đang có trong DB"""
+        try:
+            titles = set()
+            next_offset = None
+            
+            # Scroll qua toàn bộ dữ liệu để lấy unique titles
+            # Lưu ý: Với DB rất lớn, cách này có thể chậm. 
+            # Tuy nhiên với quy mô chatbot nội bộ thì ổn.
+            while True:
+                records, next_offset = self.client.scroll(
+                    collection_name=self.collection_name,
+                    limit=100,
+                    offset=next_offset,
+                    with_payload=True,
+                    with_vectors=False
+                )
+                
+                for record in records:
+                    if record.payload and "title" in record.payload:
+                        titles.add(record.payload["title"])
+                        
+                if next_offset is None:
+                    break
+                    
+            return sorted(list(titles))
+        except Exception as e:
+            print(f"❌ Lỗi lấy danh sách file: {e}")
+            return []
+
+    def delete_by_title(self, title: str):
+        """Xóa tất cả chunks thuộc về một file title"""
+        print(f"🗑️ Đang xóa dữ liệu của file: {title}...")
+        try:
+            self.client.delete(
+                collection_name=self.collection_name,
+                points_selector=Filter(
+                    must=[
+                        FieldCondition(
+                            key="title",
+                            match=MatchValue(value=title)
+                        )
+                    ]
+                )
+            )
+            print(f"✅ Đã xóa xong: {title}")
+            return True
+        except Exception as e:
+            print(f"❌ Lỗi xóa file {title}: {e}")
+            raise e
+
     def index_jsonl(self, jsonl_path: str, batch_size: int = 100):
         print(f"\n📄 Reading chunks from: {jsonl_path}")        
         with open(jsonl_path, "r", encoding="utf-8") as f:
@@ -56,6 +162,7 @@ class QdrantIndexer:
                         "chunk_id": chunk_id,
                         "content": content,
                         "url": item.get("url", "unknown"),
+                        "title": item.get("title", ""), # Default empty if missing
                         "type": item.get("type", "text"),
                     }                    
                     # Thêm metadata
@@ -68,8 +175,7 @@ class QdrantIndexer:
                                         
                     if "title" in metadata and metadata["title"]:
                         payload["title"] = metadata["title"]
-                    elif "title" in item and item["title"]: 
-                        payload["title"] = item["title"]
+                    # elif case handled in init payload
                     
                     if "order" in metadata:
                         payload["order"] = metadata["order"]

@@ -13,6 +13,7 @@ from groq import Groq
 from src.embedding.indexer import QdrantIndexer
 from src.security.security import SecurityManager 
 from langchain_text_splitters import RecursiveCharacterTextSplitter 
+from src.database import add_document, delete_document_record, get_all_documents 
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -143,7 +144,7 @@ Yêu cầu bắt buộc:
             return ""
 
 
-def process_uploaded_file(uploaded_file):
+def process_uploaded_file(uploaded_file, client=None, model=None):
     
     # 1. SECURITY CHECK
     is_valid, error_msg = security_manager.validate_file(uploaded_file)
@@ -231,7 +232,9 @@ def process_uploaded_file(uploaded_file):
             indexer = QdrantIndexer(
                 qdrant_path="./qdrant_data",
                 collection_name="bdu_chunks_gemma",
-                embedding_model="google/embeddinggemma-300m"
+                embedding_model="google/embeddinggemma-300m",
+                client=client,
+                model=model
             )
             
             temp_jsonl = os.path.join(save_dir, "temp_chunks.jsonl")
@@ -248,6 +251,9 @@ def process_uploaded_file(uploaded_file):
                     f.write(json.dumps(payload, ensure_ascii=False) + "\n")
             indexer.index_jsonl(temp_jsonl)
             
+            # Lưu vào SQLite để quản lý nhanh
+            add_document(original_display_name, len(chunks_data))
+            
         return len(chunks_data)
 
     except Exception as e:
@@ -257,3 +263,76 @@ def process_uploaded_file(uploaded_file):
         if os.path.exists(save_dir):
             try: shutil.rmtree(save_dir)
             except: pass
+
+def get_all_files(client=None):
+    # Ưu tiên lấy từ SQLite (nhanh & có sort)
+    docs = get_all_documents()
+    if docs:
+        return docs
+    
+    # Fallback: Nếu SQLite rỗng (chưa sync), lấy từ Qdrant (chậm)
+    # Lưu ý: Return format khác nhau, UI cần xử lý
+    try:
+        indexer = QdrantIndexer(
+            qdrant_path="./qdrant_data",
+            collection_name="bdu_chunks_gemma",
+            embedding_model="google/embeddinggemma-300m",
+            client=client
+        )
+        titles = indexer.get_all_titles()
+        # Mock struct để tương thích UI
+        return [{"filename": t, "upload_time": "N/A", "num_chunks": "?"} for t in titles]
+    except Exception as e:
+        print(f"Error getting files: {e}")
+        return []
+
+def delete_doc(file_name, client=None):
+    try:
+        indexer = QdrantIndexer(
+            qdrant_path="./qdrant_data",
+            collection_name="bdu_chunks_gemma",
+            embedding_model="google/embeddinggemma-300m",
+            client=client
+        )
+        # 1. Xóa trong Vector DB
+        indexer.delete_by_title(file_name)
+        
+        # 2. Xóa trong SQLite
+        delete_document_record(file_name)
+        
+        return True
+    except Exception as e:
+        print(f"Error deleting file: {e}")
+        raise e
+
+def sync_documents_from_qdrant(client=None):
+    """Quét toàn bộ Qdrant để cập nhật vào SQLite"""
+    try:
+        indexer = QdrantIndexer(
+            qdrant_path="./qdrant_data",
+            collection_name="bdu_chunks_gemma",
+            embedding_model="google/embeddinggemma-300m",
+            client=client
+        )
+        titles = indexer.get_all_titles()
+        count = 0
+        for t in titles:
+            add_document(t, 0) # Không biết số chunks chính xác, để 0
+            count += 1
+        return count
+    except Exception as e:
+        print(f"Sync error: {e}")
+        return 0
+
+def get_file_details(file_name, client=None):
+    try:
+        indexer = QdrantIndexer(
+            qdrant_path="./qdrant_data",
+            collection_name="bdu_chunks_gemma",
+            embedding_model="google/embeddinggemma-300m",
+            client=client
+        )
+        return indexer.get_file_chunks(file_name)
+    except Exception as e:
+        print(f"Error getting file details: {e}")
+        return []

@@ -30,8 +30,74 @@ def init_db():
     except sqlite3.OperationalError:
         pass  # Cột đã tồn tại
     
+    # Bảng documents để quản lý file upload
+    c.execute('''CREATE TABLE IF NOT EXISTS documents
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT, 
+                  filename TEXT UNIQUE, 
+                  upload_time DATETIME,
+                  num_chunks INTEGER)''')
+    
     conn.commit()
     conn.close()
+
+# --- DOCUMENT MANAGEMENT FUNCTIONS ---
+
+def add_document(filename, num_chunks):
+    """Lưu thông tin file mới upload"""
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        c = conn.cursor()
+        upload_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        
+        # Upsert: Nếu file đã có thì update time và chunks
+        c.execute("SELECT id FROM documents WHERE filename = ?", (filename,))
+        row = c.fetchone()
+        
+        if row:
+            c.execute("UPDATE documents SET upload_time = ?, num_chunks = ? WHERE filename = ?", 
+                      (upload_time, num_chunks, filename))
+        else:
+            c.execute("INSERT INTO documents (filename, upload_time, num_chunks) VALUES (?, ?, ?)", 
+                      (filename, upload_time, num_chunks))
+            
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"DB Error add_doc: {e}")
+        return False
+
+def get_all_documents():
+    """Lấy danh sách documents sắp xếp theo mới nhất"""
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        c = conn.cursor()
+        c.execute("SELECT filename, upload_time, num_chunks FROM documents ORDER BY upload_time DESC")
+        rows = c.fetchall()
+        conn.close()
+        
+        docs = []
+        for r in rows:
+            docs.append({
+                "filename": r[0],
+                "upload_time": r[1],
+                "num_chunks": r[2]
+            })
+        return docs
+    except Exception as e:
+        print(f"DB Error get_docs: {e}")
+        return []
+
+def delete_document_record(filename):
+    """Xóa record khỏi DB"""
+    try:
+        conn = sqlite3.connect(DB_FILE)
+        c = conn.cursor()
+        c.execute("DELETE FROM documents WHERE filename = ?", (filename,))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        print(f"DB Error del_doc: {e}")
 
 
 def save_message(conversation_id, role, content, sources=None):

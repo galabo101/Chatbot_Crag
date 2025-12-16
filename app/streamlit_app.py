@@ -200,14 +200,16 @@ with st.sidebar:
             st.rerun()
     else:
         with st.expander("🔐 Quản trị viên"):
-            admin_pass = st.text_input("Mật khẩu", type="password")
-            if st.button("Đăng nhập"):
-                if hashlib.sha256(admin_pass.encode()).hexdigest() == ADMIN_PASS_HASH:
-                    st.session_state.admin_mode = True
-                    st.session_state.admin_login_time = datetime.now()
-                    st.rerun()
-                else:
-                    st.error("Sai mật khẩu")
+            with st.form("admin_login_form", enter_to_submit=True, border=False):
+                admin_pass = st.text_input("Mật khẩu", type="password")
+                submitted = st.form_submit_button("Đăng nhập")
+                if submitted:
+                    if hashlib.sha256(admin_pass.encode()).hexdigest() == ADMIN_PASS_HASH:
+                        st.session_state.admin_mode = True
+                        st.session_state.admin_login_time = datetime.now()
+                        st.rerun()
+                    else:
+                        st.error("Sai mật khẩu")
 
 # MESSAGE HANDLING
 def process_query(query_text: str):

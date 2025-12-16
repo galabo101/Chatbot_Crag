@@ -12,7 +12,7 @@ class SecurityManager:
         max_requests: int = 10,
         window_seconds: int = 60,
         max_file_size_mb: int = 100,
-        allowed_extensions: tuple = ('.pdf', '.docx', 'png', 'jpg', 'json', 'xlsx', '.txt')
+        allowed_extensions: tuple = ('.pdf', '.docx', '.png', '.jpg', '.jpeg', '.json', '.xlsx', '.txt')
     ):
         self.max_length = max_length
         self.max_requests = max_requests

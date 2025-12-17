@@ -1,49 +1,106 @@
+# ===========================================
+# GITIGNORE - WHITELIST APPROACH
+# Chỉ push những files được liệt kê bên dưới
+# ===========================================
+
+# Ignore EVERYTHING first
+*
+
+# =========================================
+# WHITELIST: Files/Folders SẼ PUSH lên Git
+# =========================================
+
+# Root files
+!.gitignore
+!.env
+!README_SETUP.md
+!requirements.txt
+!requirements-dev.txt
+
+# App folder
+!app/
+!app/admin_page.py
+!app/streamlit_app.py
+
+# Data folder (chỉ data cần thiết)
+!data/
+!data/chunks.jsonl
+!data/vietnamese-stopwords.txt
+
+# Qdrant data (vector database)
+!qdrant_data/
+!qdrant_data/.lock
+!qdrant_data/meta.json
+!qdrant_data/collection/
+!qdrant_data/collection/bdu_chunks_gemma/
+!qdrant_data/collection/bdu_chunks_gemma/storage.sqlite
+
+# Source code
+!src/
+!src/config.py
+!src/database.py
+!src/pipeline.py
+!src/admin_backend.py
+
+!src/embedding/
+!src/embedding/indexer.py
+
+!src/generation/
+!src/generation/groq_llm.py
+
+!src/retrieval/
+!src/retrieval/crag_retriever.py
+!src/retrieval/cross_encoder_reranker.py
+!src/retrieval/multi_query_retriever.py
+!src/retrieval/relevance_evaluator.py
+!src/retrieval/web_search_corrector.py
+
+!src/Advanced_Query/
+!src/Advanced_Query/query_decomposer.py
+!src/Advanced_Query/query_expander.py
+
+!src/security/
+!src/security/security.py
+
+# =========================================
+# EXPLICIT IGNORES (đảm bảo không push)
+# =========================================
+
 # Python artifacts
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-.Python
-env/
+
+# Virtual environments
 venv/
-venv_bdu_chatbot/
-# .env  # Removed from gitignore per user request
+env/
+.venv/
 
-# Tests (Excluded as requested)
-test_*.py
-*_test.py
-quick_test.py
-tests/
-test.py
-test_results.json
-test_result.txt
+# IDE/Editor
+.idea/
+.vscode/
+*.swp
 
-# Benchmarks & Debug
-benchmark*.py
-benchmark_results_*.json
-benchmark_report.*
-evaluation/results/
+# Debug & Test files
 debug_*.py
 debug_*.json
 debug_*.txt
+test_*.py
+*_test.py
+benchmark*.py
+benchmark_report.*
 analyze_*.py
 
-
-# Documentation & Info
-information/
-
-.idea/
-*.swp
-
-# Temporary files
-temp_report.*
+# Temp files
 *.tmp
 *.log
+temp_report.*
 
-# Sensitive data (Normally we ignore data, but for this demo/thesis we keep verified data)
-# qdrant_data/  <-- COMMENTED OUT: Keep this for deployment ease
+# Sensitive/Generated
 chat_history.db
 data/uploaded_temp/
 
-# Large documentation files (Optional, keep if you want to back up)
-# information/DATN_CHATBOT_RAG4.docx
+# Scripts không cần push
+check_dependencies.py
+qdrant_setup.py

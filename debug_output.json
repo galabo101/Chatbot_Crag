@@ -1,0 +1,102 @@
+{
+  "query": "dia chi va thong tin lien he voi truong",
+  "semantic_search_top10": [
+    {
+      "rank": 1,
+      "chunk_id": "thong-bao-tuyen-sinh-dai-hoc-chinh-quy-nam-2025_table_29",
+      "score": 0.4982512086249555,
+      "content_preview": "Bảng thông tin các ngành đào tạo và tổ hợp xét tuyển."
+    },
+    {
+      "rank": 2,
+      "chunk_id": "ho-so-tuyen-sinh-tien-si_table_13",
+      "score": 0.4944304254417193,
+      "content_preview": "Biên nhận hồ sơ dự tuyển NCS."
+    },
+    {
+      "rank": 3,
+      "chunk_id": "truong-dai-hoc-binh-duong-ra-mat-chuyen-nganh-moi-mo-ra-nhieu-co-hoi-viec-lam-va-phat-trien-ky-su-ta_table_59",
+      "score": 0.4926618413153267,
+      "content_preview": "Bảng thông tin tuyển sinh các ngành học."
+    },
+    {
+      "rank": 4,
+      "chunk_id": "thong-bao-tuyen-sinh-van-bang-2-dot-1-nam-2025_table_56",
+      "score": 0.48991981401704376,
+      "content_preview": "Bảng môn học và các ngành liên quan."
+    },
+    {
+      "rank": 5,
+      "chunk_id": "gioi-thieu-vien-chau-a-hoc_table_11",
+      "score": 0.48672144370933923,
+      "content_preview": "Bảng cơ cấu nhân sự."
+    },
+    {
+      "rank": 6,
+      "chunk_id": "truong-dai-hoc-binh-duong-tuyen-sinh-dai-hoc-chinh-quy-nam-2021_table_61",
+      "score": 0.48586451764616645,
+      "content_preview": "Bảng tổ hợp môn xét tuyển"
+    },
+    {
+      "rank": 7,
+      "chunk_id": "thong-bao-tuyen-sinh-dai-hoc-chinh-quy-nam-2025_table_30",
+      "score": 0.4855366639682327,
+      "content_preview": "Bảng tổ hợp môn xét tuyển đại học."
+    },
+    {
+      "rank": 8,
+      "chunk_id": "thong-bao-tuyen-sinh-trinh-do-thac-si-dot-3-nam-2025_table_46",
+      "score": 0.47854933810189026,
+      "content_preview": "Bảng chứng chỉ ngoại ngữ và trình độ tương đương."
+    },
+    {
+      "rank": 9,
+      "chunk_id": "thong-bao-tuyen-sinh-trinh-do-thac-si-dot-1-nam-2025_table_38",
+      "score": 0.4692729048904591,
+      "content_preview": "Bảng các chứng chỉ và trình độ ngoại ngữ."
+    },
+    {
+      "rank": 10,
+      "chunk_id": "thong-bao-tuyen-sinh-dai-hoc-chinh-quy-nam-2024_table_28",
+      "score": 0.4676311791427832,
+      "content_preview": "Bảng thông tin tuyển sinh các ngành đào tạo đại học, bao gồm chỉ tiêu và tổ hợp xét tuyển."
+    }
+  ],
+  "crag_result": {
+    "action_taken": "KNOWLEDGE_REFINEMENT",
+    "expansion_triggered": false,
+    "graded_stats": {
+      "correct": 10,
+      "incorrect": 0,
+      "ambiguous": 0
+    },
+    "refined_chunks": [
+      {
+        "chunk_id": "thong-tin-lien-he-cua-truong",
+        "content_preview": "Thông tin liên hệ với trường chi tiết: Hotline tuyển sinh: (0789.269.219) (có Zalo), Email tuyển sinh: tuyensinh@bdu.edu.vn, Website: https://tuyensinh.bdu.edu.vn , Địa chỉ Số 504 Đại lộ Bình Dương, P. Phú Lợi, Thành phố Hồ Chí Minh.Số 504 Đại lộ Bình Dương, P. Phú Lợi, Thành phố Hồ Chí Minh. Hoặc C"
+      },
+      {
+        "chunk_id": "thong-bao-tuyen-sinh-dai-hoc-chinh-quy-nam-2025_table_29",
+        "content_preview": "Bảng thông tin các ngành đào tạo và tổ hợp xét tuyển."
+      },
+      {
+        "chunk_id": "ho-so-tuyen-sinh-tien-si_table_13",
+        "content_preview": "Biên nhận hồ sơ dự tuyển NCS."
+      },
+      {
+        "chunk_id": "truong-dai-hoc-binh-duong-ra-mat-chuyen-nganh-moi-mo-ra-nhieu-co-hoi-viec-lam-va-phat-trien-ky-su-ta_table_59",
+        "content_preview": "Bảng thông tin tuyển sinh các ngành học."
+      },
+      {
+        "chunk_id": "thong-bao-tuyen-sinh-van-bang-2-dot-1-nam-2025_table_56",
+        "content_preview": "Bảng môn học và các ngành liên quan."
+      },
+      {
+        "chunk_id": "gioi-thieu-vien-chau-a-hoc_table_11",
+        "content_preview": "Bảng cơ cấu nhân sự."
+      }
+    ]
+  },
+  "lien_he_in_top10": false,
+  "lien_he_in_final": true
+}

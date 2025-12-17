@@ -1,0 +1,28 @@
+﻿============================================================
+DEBUG: RETRIEVAL TEST
+============================================================
+python : Traceback (most recent call 
+last):
+At line:1 char:1
++ python debug_retrieval.py 2>&1 | 
+Out-File -Encoding utf8 debug_output ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecif 
+   ied: (Traceback (most recent call l  
+  ast)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCom 
+   mandError
+ 
+  File 
+"C:\Users\nguye\OneDrive\Desktop\New fol
+der\Chatbot_Crag\debug_retrieval.py", 
+line 22, in <module>
+    print(f"Query: {TEST_QUERY}")
+  File "C:\Users\nguye\AppData\Local\Pro
+grams\Python\Python310\lib\encodings\cp1
+252.py", line 19, in encode
+    return codecs.charmap_encode(input,s
+elf.errors,encoding_table)[0]
+UnicodeEncodeError: 'charmap' codec 
+can't encode characters in position 
+7-8: character maps to <undefined>

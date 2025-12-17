@@ -286,7 +286,7 @@ else: # GIAO DIỆN CHAT CHÍNH
             "📊 Điểm chuẩn các ngành năm 2025?",
             "🎯 hồ sơ xét tuyển gồm những gì?",
             "💰 Trường có học bổng không?",
-            "📍 Địa chỉ và cách liên hệ với trường?",
+            "📍 Địa chỉ và thông tin liên hệ với trường?",
             "🏫 Trường có những ngành nào?"
         ]
         

@@ -14,6 +14,16 @@ sys.path.append(str(Path(__file__).parent.parent))
 from .relevance_evaluator import RelevanceEvaluator 
 from .web_search_corrector import WebSearchCorrector
 from Advanced_Query.query_expander import QueryExpander
+from qdrant_client.models import Filter, FieldCondition, MatchValue
+
+# Config: Boost score cho chunks có chunk_id chứa keywords đặc biệt
+BOOST_KEYWORDS = ["lien-he", "dia-chi", "hotline", "contact", "lien-lac"]
+BOOST_SCORE_AMOUNT = 0.15
+
+# Config: Keyword-based fallback - inject chunk cụ thể khi query chứa keywords
+KEYWORD_CHUNK_INJECT = {
+    "thong-tin-lien-he-cua-truong": ["lien he", "dia chi", "hotline", "dien thoai", "email", "so dt", "zalo"]
+}
 
 
 class CRAGRetriever:
@@ -107,6 +117,16 @@ class CRAGRetriever:
                 "order": hit.payload.get("order"),
                 "source": "database"
             })
+        
+        # Boost score cho chunks có chunk_id đặc biệt
+        for candidate in candidates:
+            chunk_id = candidate.get("chunk_id", "").lower()
+            if any(kw in chunk_id for kw in BOOST_KEYWORDS):
+                candidate["score"] += BOOST_SCORE_AMOUNT
+                candidate["boosted"] = True
+        
+        # Re-sort theo score mới
+        candidates.sort(key=lambda x: x["score"], reverse=True)
         
         return candidates
     
@@ -257,6 +277,9 @@ class CRAGRetriever:
         refined_chunks = self.apply_correction(query, graded, action)
         refined_chunks = refined_chunks[:top_k_final]
         
+        # KEYWORD-BASED FALLBACK: Inject chunk đặc biệt nếu query chứa keywords
+        refined_chunks = self._apply_keyword_fallback(query, refined_chunks)
+        
         return {
             "query": query,
             "refined_chunks": refined_chunks,
@@ -268,6 +291,61 @@ class CRAGRetriever:
             "action_taken": action,
             "expansion_triggered": expansion_triggered
         }
+    
+    def _apply_keyword_fallback(self, query: str, refined_chunks: List[Dict]) -> List[Dict]:
+        """Inject chunk đặc biệt nếu query chứa keywords và chunk chưa có trong kết quả"""
+        query_lower = query.lower()
+        existing_chunk_ids = {c.get("chunk_id", "").lower() for c in refined_chunks}
+        
+        for target_chunk_id, keywords in KEYWORD_CHUNK_INJECT.items():
+            # Kiểm tra query có chứa keyword nào không
+            if any(kw in query_lower for kw in keywords):
+                # Kiểm tra chunk đã có trong kết quả chưa
+                if target_chunk_id.lower() not in existing_chunk_ids:
+                    # Fetch chunk từ Qdrant
+                    injected = self._fetch_chunk_by_id(target_chunk_id)
+                    if injected:
+                        injected["injected_fallback"] = True
+                        refined_chunks.insert(0, injected)  # Thêm vào đầu
+                        print(f"[CRAG] ⚡ Injected fallback chunk: {target_chunk_id}")
+        
+        return refined_chunks
+    
+    def _fetch_chunk_by_id(self, chunk_id: str) -> Dict:
+        """Fetch một chunk cụ thể từ Qdrant theo chunk_id"""
+        try:
+            results, _ = self.client.scroll(
+                collection_name=self.collection_name,
+                scroll_filter=Filter(
+                    must=[
+                        FieldCondition(
+                            key="chunk_id",
+                            match=MatchValue(value=chunk_id)
+                        )
+                    ]
+                ),
+                limit=1,
+                with_payload=True,
+                with_vectors=False
+            )
+            
+            if results:
+                record = results[0]
+                return {
+                    "id": record.id,
+                    "score": 1.0,  # Score cao vì được inject
+                    "chunk_id": record.payload.get("chunk_id"),
+                    "content": record.payload.get("content", ""),
+                    "full_content": record.payload.get("full_content"),
+                    "url": record.payload.get("url"),
+                    "type": record.payload.get("type"),
+                    "title": record.payload.get("title", "Thông tin liên hệ"),
+                    "source": "fallback_inject"
+                }
+        except Exception as e:
+            print(f"[CRAG] ⚠️ Fallback fetch error: {e}")
+        
+        return None
     
     def close(self):     #Close connections
         if hasattr(self.client, 'close'):

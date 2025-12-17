@@ -1,6 +1,6 @@
 # ===========================================
 # GITIGNORE - WHITELIST APPROACH
-# Chỉ push những files được liệt kê bên dưới
+# Ignore tất cả, chỉ push những files bên dưới
 # ===========================================
 
 # Ignore EVERYTHING first
@@ -22,7 +22,7 @@
 !app/admin_page.py
 !app/streamlit_app.py
 
-# Data folder (chỉ data cần thiết)
+# Data folder
 !data/
 !data/chunks.jsonl
 !data/vietnamese-stopwords.txt
@@ -61,46 +61,3 @@
 
 !src/security/
 !src/security/security.py
-
-# =========================================
-# EXPLICIT IGNORES (đảm bảo không push)
-# =========================================
-
-# Python artifacts
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Virtual environments
-venv/
-env/
-.venv/
-
-# IDE/Editor
-.idea/
-.vscode/
-*.swp
-
-# Debug & Test files
-debug_*.py
-debug_*.json
-debug_*.txt
-test_*.py
-*_test.py
-benchmark*.py
-benchmark_report.*
-analyze_*.py
-
-# Temp files
-*.tmp
-*.log
-temp_report.*
-
-# Sensitive/Generated
-chat_history.db
-data/uploaded_temp/
-
-# Scripts không cần push
-check_dependencies.py
-qdrant_setup.py

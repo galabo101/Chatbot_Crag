@@ -18,10 +18,15 @@ test.py
 test_results.json
 test_result.txt
 
-# Benchmarks
+# Benchmarks & Debug
 benchmark*.py
 benchmark_results_*.json
+benchmark_report.*
 evaluation/results/
+debug_*.py
+debug_*.json
+debug_*.txt
+analyze_*.py
 
 
 # Documentation & Info

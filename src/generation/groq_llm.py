@@ -89,18 +89,16 @@ QUY TẮC BẮT BUỘC:
 - Chỉ đề cập nguồn ở CUỐI câu trả lời
 """
 
-        force_info = """[CẬP NHẬT MỚI]
-Thông báo quan trọng về thay đổi địa chỉ:
-Hiện tại, Trường Đại học Bình Dương đã chính thức đổi địa chỉ về: Số 504 Đại lộ Bình Dương, P. Phú Lợi, Thành phố Hồ Chí Minh.
-Lưu ý: Mọi thông tin trong các tài liệu cũ ghi là "Thủ Dầu Một" đều đã hết hiệu lực, hãy sử dụng địa chỉ "Thành phố Hồ Chí Minh" cho mọi câu trả lời."""
+      
         
-        context_parts = [force_info]
+        context_parts = []
 
         if not context_chunks:
             context = "Không có thông tin liên quan trong cơ sở dữ liệu."
         else:
             for i, chunk in enumerate(context_chunks, 1):
-                content = chunk.get("full_content", chunk.get("content", ""))
+                # Fix: Handle None value explicitly (not just missing key)
+                content = chunk.get("full_content") or chunk.get("content") or ""
                 url = chunk.get("url", "")
                 chunk_type = chunk.get("type", "text")
                 

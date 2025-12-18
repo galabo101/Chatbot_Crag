@@ -21,8 +21,16 @@ BOOST_KEYWORDS = ["lien-he", "dia-chi", "hotline", "contact", "lien-lac"]
 BOOST_SCORE_AMOUNT = 0.15
 
 # Config: Keyword-based fallback - inject chunk cụ thể khi query chứa keywords
+# Bao gồm CẢ có dấu và không dấu để đảm bảo match
 KEYWORD_CHUNK_INJECT = {
-    "thong-tin-lien-he-cua-truong": ["lien he", "dia chi", "hotline", "dien thoai", "email", "so dt", "zalo"]
+    "thong-tin-lien-he-cua-truong": [       
+        "lien he", "dia chi", "hotline", "dien thoai", "email", "so dt", "zalo",        
+        "liên hệ", "địa chỉ", "điện thoại", "số điện thoại", "thông tin liên hệ"
+    ],
+    "ho-so-xet-tuyen-dai-hoc-chinh-quy-2023_chunk_1": [        
+        "ho so", "ho so xet tuyen", "giay to", "can chuan bi gi", "nop ho so",       
+        "hồ sơ", "hồ sơ xét tuyển", "giấy tờ", "cần chuẩn bị gì", "nộp hồ sơ"
+    ]
 }
 
 

@@ -47,27 +47,7 @@ def render_admin_dashboard():
         )
         
         if uploaded_files:
-            # Hiển thị danh sách file đã chọn (giống tab Quản lý dữ liệu)
-            st.subheader(f"📋 Đã chọn {len(uploaded_files)} file:")
-            
-            # Header
-            col1, col2 = st.columns([0.7, 0.3])
-            col1.markdown("**Tên file**")
-            col2.markdown("**Kích thước**")
-            st.divider()
-            
-            # Danh sách file
-            for i, file in enumerate(uploaded_files):
-                col1, col2 = st.columns([0.7, 0.3])
-                with col1:
-                    st.text(file.name)
-                with col2:
-                    size_kb = file.size / 1024
-                    if size_kb > 1024:
-                        st.text(f"{size_kb/1024:.1f} MB")
-                    else:
-                        st.text(f"{size_kb:.1f} KB")
-            
+                       
             st.divider()
             
             # Validation logic

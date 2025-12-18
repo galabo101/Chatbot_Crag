@@ -282,12 +282,12 @@ else: # GIAO DIỆN CHAT CHÍNH
         st.markdown("### 💡 Những câu hỏi thường gặp")
         
         sample_questions = [
-            "📚 Học phí ngành Công nghệ Thông tin năm 2025?",
-            "📊 Điểm chuẩn các ngành năm 2025?",
-            "🎯 hồ sơ xét tuyển gồm những gì?",
-            "💰 Trường có học bổng không?",
-            "📍 Địa chỉ và thông tin liên hệ với trường?",
-            "🏫 Trường có những ngành nào?"
+            "📚 Học phí ngành Công nghệ Thông tin năm 2025",
+            "📊 Điểm chuẩn các ngành năm 2025",
+            "🎯 hồ sơ xét tuyển gồm những gì",
+            "💰 Trường có học bổng không",
+            "📍 Địa chỉ và thông tin liên hệ với trường",
+            "🏫 Trường có những ngành nào"
         ]
         
         c1, c2, c3 = st.columns(3)

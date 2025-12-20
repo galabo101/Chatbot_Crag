@@ -1,0 +1,37 @@
+DANH SÁCH 30 CÂU HỎI BENCHMARK
+
+--- NHÓM 1: CÂU HỎI ĐƠN GIẢN (SIMPLE) ---
+1. Học phí ngành Công nghệ thông tin là bao nhiêu?
+2. Địa chỉ trường Đại học Bình Dương ở đâu?
+3. Hotline tuyển sinh của trường là gì?
+4. Trường có những ngành đào tạo nào?
+5. Điểm chuẩn ngành Luật năm 2024 là bao nhiêu?
+6. Hồ sơ xét tuyển gồm những gì?
+7. Trường có học bổng không?
+8. Thời gian tuyển sinh năm 2025 khi nào?
+9. Mã ngành Công nghệ thông tin là gì?
+10. Email liên hệ tuyển sinh là gì?
+
+--- NHÓM 2: CÂU HỎI PHỨC TẠP (COMPLEX) ---
+11. So sánh điểm chuẩn ngành Luật và ngành Kinh tế năm 2024?
+12. Học phí và điểm chuẩn ngành CNTT năm 2024?
+13. Tôi có 18 điểm thì đậu được những ngành nào và học phí ra sao?
+14. Ngành nào có điểm chuẩn thấp nhất và cao nhất năm 2024?
+15. Trường có những phương thức xét tuyển nào và điều kiện từng phương thức?
+16. So sánh học phí giữa các ngành khối kinh tế?
+17. Nếu tôi thích công nghệ, nên chọn ngành CNTT hay Trí tuệ nhân tạo?
+18. Liệt kê các ngành có mức học phí dưới 20 triệu/năm?
+19. Quy trình nộp hồ sơ online và offline khác nhau như thế nào?
+20. Điểm chuẩn năm 2024 thay đổi như thế nào so với 2023?
+
+--- NHÓM 3: CÂU HỎI ĐẶC BIỆT / NOISY INPUT (OUT OF SCOPE) ---
+21. hoc phi nganh cntp bao nhieu
+22. đc nộp hồ sơ onl k?
+23. Điểm chẩn luat năm ny?
+24. tgian đky xét tuyển?
+25. Học trườg có mắc k?
+26. Ngành nào ez xin việc?
+27. Học phí?
+28. co hb full k a
+29. lien he sdt nao
+30. truong o dau vay

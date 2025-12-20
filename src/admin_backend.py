@@ -279,9 +279,9 @@ def get_all_files(client=None):
             embedding_model="google/embeddinggemma-300m",
             client=client
         )
-        titles = indexer.get_all_titles()
-        # Mock struct để tương thích UI
-        return [{"filename": t, "upload_time": "N/A", "num_chunks": "?"} for t in titles]
+        titles_dict = indexer.get_all_titles()
+        # Mock struct để tương thích UI (chuyển dict -> list)
+        return [{"filename": t, "upload_time": "N/A", "num_chunks": c} for t, c in titles_dict.items()]
     except Exception as e:
         print(f"Error getting files: {e}")
         return []
@@ -314,10 +314,10 @@ def sync_documents_from_qdrant(client=None):
             embedding_model="google/embeddinggemma-300m",
             client=client
         )
-        titles = indexer.get_all_titles()
+        titles_dict = indexer.get_all_titles()
         count = 0
-        for t in titles:
-            add_document(t, 0) # Không biết số chunks chính xác, để 0
+        for title, num_chunks in titles_dict.items():
+            add_document(title, num_chunks)
             count += 1
         return count
     except Exception as e:

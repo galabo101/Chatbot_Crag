@@ -83,15 +83,12 @@ class QdrantIndexer:
             print(f"❌ Lỗi lấy chunks của file {title}: {e}")
             return []
 
-    def get_all_titles(self) -> list[str]:
-        """Lấy danh sách tất cả các file title đang có trong DB"""
+    def get_all_titles(self) -> dict[str, int]:
+        """Lấy danh sách tất cả các file title và số lượng chunks"""
         try:
-            titles = set()
+            titles_count = {}
             next_offset = None
             
-            # Scroll qua toàn bộ dữ liệu để lấy unique titles
-            # Lưu ý: Với DB rất lớn, cách này có thể chậm. 
-            # Tuy nhiên với quy mô chatbot nội bộ thì ổn.
             while True:
                 records, next_offset = self.client.scroll(
                     collection_name=self.collection_name,
@@ -103,15 +100,17 @@ class QdrantIndexer:
                 
                 for record in records:
                     if record.payload and "title" in record.payload:
-                        titles.add(record.payload["title"])
+                        t = record.payload["title"]
+                        if t:  # Filter empty
+                            titles_count[t] = titles_count.get(t, 0) + 1
                         
                 if next_offset is None:
                     break
                     
-            return sorted(list(titles))
+            return titles_count
         except Exception as e:
             print(f"❌ Lỗi lấy danh sách file: {e}")
-            return []
+            return {}
 
     def delete_by_title(self, title: str):
         """Xóa tất cả chunks thuộc về một file title"""

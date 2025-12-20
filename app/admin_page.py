@@ -27,7 +27,7 @@ def render_admin_dashboard():
             # Bảng câu hỏi gần đây
             st.subheader("💬 Câu hỏi gần đây")
             if not stats['recent_questions'].empty:
-                st.dataframe(stats['recent_questions'], use_container_width=True, height=300)
+                st.dataframe(stats['recent_questions'], width="stretch", height=300)
             else:
                 st.info("Chưa có dữ liệu câu hỏi.")
                 
@@ -129,7 +129,7 @@ def render_admin_dashboard():
                 if chunks:
                     st.info(f"Tìm thấy **{len(chunks)}** phân đoạn.")
                     df_chunks = pd.DataFrame(chunks)
-                    st.dataframe(df_chunks[["chunk_id", "length", "content", "type"]], use_container_width=True, height=300)
+                    st.dataframe(df_chunks[["chunk_id", "length", "content", "type"]], width="stretch", height=300)
                 else:
                     st.warning(f"Không tìm thấy dữ liệu chunks nào cho file: {target_file}")
                 

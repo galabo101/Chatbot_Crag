@@ -105,7 +105,7 @@ if __name__ == "__main__":
     # Initialize Qdrant
     qdrant = QdrantSetup(persist_path="./qdrant_data")
     
-    #qdrant.delete_collection("bdu_chunks_gemma")
+    qdrant.delete_collection("bdu_chunks_gemma")
 
     # Create collection for BDU chatbot
     qdrant.create_collection(

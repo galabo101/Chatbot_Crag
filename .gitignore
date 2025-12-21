@@ -15,7 +15,7 @@
 !.env
 !README_SETUP.md
 !requirements.txt
-!requirements-dev.txt
+
 !qdrant_setup.py
 !benchmark.py
 !benchmark_results.json

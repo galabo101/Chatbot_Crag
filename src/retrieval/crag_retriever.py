@@ -358,3 +358,8 @@ class CRAGRetriever:
     def close(self):     #Close connections
         if hasattr(self.client, 'close'):
             self.client.close()
+        return None
+    
+    def close(self):     #Close connections
+        if hasattr(self.client, 'close'):
+            self.client.close()

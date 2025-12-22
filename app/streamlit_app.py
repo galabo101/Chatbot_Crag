@@ -282,7 +282,7 @@ else: # GIAO DIỆN CHAT CHÍNH
         st.markdown("### 💡 Những câu hỏi thường gặp")
         
         sample_questions = [
-            "📚 Học phí ngành Công nghệ Thông tin năm 2025",
+            "📚 Học phí ngành Công nghệ Thông tin",
             "📊 Điểm chuẩn các ngành năm 2025",
             "🎯 hồ sơ xét tuyển gồm những gì",
             "💰 Trường có học bổng không",

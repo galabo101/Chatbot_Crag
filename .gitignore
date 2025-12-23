@@ -14,6 +14,7 @@
 !.gitignore
 !.env
 !README_SETUP.md
+!README.md
 !requirements.txt
 
 !qdrant_setup.py

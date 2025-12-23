@@ -21,13 +21,18 @@ Chatbot tư vấn tuyển sinh sử dụng kỹ thuật **Retrieval-Augmented Ge
 ## 🏗️ Kiến trúc hệ thống
 
 ```
-┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│   User Query    │────▶│  Query Expander  │────▶│  CRAG Retriever │
-└─────────────────┘     └──────────────────┘     └────────┬────────┘
-                                                          │
-                        ┌──────────────────┐              │
-                        │   Groq LLM       │◀─────────────┘
-                        │ (llama-3.3-70b)  │
+┌─────────────────┐     ┌────────────────────┐     ┌─────────────────┐
+│   User Query    │────▶│ Query Decomposer   │────▶│  CRAG Retriever │
+└─────────────────┘     │ (Phân tách câu hỏi)│     │ + Query Expander│
+                        └────────────────────┘     └────────┬────────┘
+                                                            │
+                                                   ┌────────▼────────┐
+                                                   │   Qdrant VectorDB│
+                                                   └────────┬────────┘
+                                                            │
+                        ┌──────────────────┐                │
+                        │     Groq LLM     │◀───────────────┘
+                        │ (LLaMA 3.3 70B)  │
                         └────────┬─────────┘
                                  │
                         ┌────────▼─────────┐
@@ -50,22 +55,35 @@ Chatbot tư vấn tuyển sinh sử dụng kỹ thuật **Retrieval-Augmented Ge
 ```
 Chatbot_Crag/
 ├── app/
-│   ├── streamlit_app.py      # Giao diện chatbot
-│   └── admin_page.py         # Trang quản trị
+│   ├── streamlit_app.py          # Giao diện chatbot chính
+│   └── admin_page.py             # Trang quản trị
 ├── src/
-│   ├── pipeline.py           # RAG Pipeline chính
+│   ├── pipeline.py               # RAG Pipeline chính
+│   ├── config.py                 # Cấu hình hệ thống
+│   ├── database.py               # SQLite database
+│   ├── admin_backend.py          # Backend cho admin
 │   ├── retrieval/
-│   │   ├── crag_retriever.py # CRAG implementation
-│   │   └── multi_query_retriever.py
+│   │   ├── crag_retriever.py     # CRAG implementation
+│   │   ├── multi_query_retriever.py
+│   │   ├── relevance_evaluator.py
+│   │   ├── cross_encoder_reranker.py
+│   │   └── web_search_corrector.py
 │   ├── generation/
-│   │   └── groq_llm.py       # LLM wrapper
-│   └── Advanced_Query/
-│       ├── query_expander.py
-│       └── query_decomposer.py
+│   │   └── groq_llm.py           # LLM wrapper
+│   ├── embedding/
+│   │   └── indexer.py            # Vector indexer
+│   ├── Advanced_Query/
+│   │   ├── query_decomposer.py   # Phân tách câu hỏi
+│   │   └── query_expander.py     # Mở rộng truy vấn
+│   └── security/
+│       └── security.py           # Chống injection & rate limit
 ├── data/
-│   └── chunks.jsonl          # Dữ liệu đã chunk
-├── qdrant_data/              # Vector database
+│   ├── chunks.jsonl              # Dữ liệu đã chunk
+│   └── vietnamese-stopwords.txt  # Stopwords tiếng Việt
+├── qdrant_data/                  # Vector database
 ├── requirements.txt
+├── qdrant_setup.py               # Script setup Qdrant
+├── benchmark.py                  # Script đánh giá
 └── README.md
 ```
 

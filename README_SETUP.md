@@ -30,7 +30,12 @@ venv\Scripts\activate
 # Cài đặt dependencies chính
 pip install -r requirements.txt
 
-### Bước 4: Cấu hình Environment Variables
+### Bước 4: Đăng nhập Hugging Face
+huggingface-cli login
+
+Enter your token (input will not be visible):
+
+### Bước 5: Cấu hình Environment Variables
 
 ```env
 # Groq API Key (Bắt buộc)

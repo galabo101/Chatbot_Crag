@@ -250,9 +250,10 @@ TRẢ LỜI:"""
                 "num_sources": len(sources),
                 "query": query
             }
-               
-        if self.enable_cache:
-            self.cache.set(query, context_chunks, result)
+            
+            # Only cache successful responses (not errors)
+            if self.enable_cache:
+                self.cache.set(query, context_chunks, result)
         
         return result
 

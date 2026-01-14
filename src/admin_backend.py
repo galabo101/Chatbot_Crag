@@ -270,8 +270,7 @@ def get_all_files(client=None):
     if docs:
         return docs
     
-    # Fallback: Nếu SQLite rỗng (chưa sync), lấy từ Qdrant (chậm)
-    # Lưu ý: Return format khác nhau, UI cần xử lý
+    # Fallback: Nếu SQLite rỗng (chưa sync), lấy từ Qdrant (chậm)   
     try:
         indexer = QdrantIndexer(
             qdrant_path="./qdrant_data",

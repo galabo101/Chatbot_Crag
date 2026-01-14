@@ -19,8 +19,13 @@
 
 !qdrant_setup.py
 !benchmark.py
+!benchmark_simple.py
 !benchmark_results.json
 !benchmark_questions.txt
+!benchmark_results_full_*.csv
+!benchmark_results_eval_*.csv
+!benchmark_results_full_*.xlsx
+!benchmark_results_eval_*.xlsx
 
 # App folder
 !app/

@@ -1,37 +1,100 @@
-DANH SÁCH 30 CÂU HỎI BENCHMARK
-
---- NHÓM 1: CÂU HỎI ĐƠN GIẢN (SIMPLE) ---
-1. Học phí ngành Công nghệ thông tin là bao nhiêu?
-2. Địa chỉ trường Đại học Bình Dương ở đâu?
-3. Hotline tuyển sinh của trường là gì?
-4. Trường có những ngành đào tạo nào?
-5. Điểm chuẩn ngành Luật năm 2024 là bao nhiêu?
-6. Hồ sơ xét tuyển gồm những gì?
-7. Trường có học bổng không?
-8. Thời gian tuyển sinh năm 2025 khi nào?
-9. Mã ngành Công nghệ thông tin là gì?
-10. Email liên hệ tuyển sinh là gì?
-
---- NHÓM 2: CÂU HỎI PHỨC TẠP (COMPLEX) ---
-11. So sánh điểm chuẩn ngành Luật và ngành Kinh tế năm 2024?
-12. Học phí và điểm chuẩn ngành CNTT năm 2024?
-13. Tôi có 18 điểm thì đậu được những ngành nào và học phí ra sao?
-14. Ngành nào có điểm chuẩn thấp nhất và cao nhất năm 2024?
-15. Trường có những phương thức xét tuyển nào và điều kiện từng phương thức?
-16. So sánh học phí giữa các ngành khối kinh tế?
-17. Nếu tôi thích công nghệ, nên chọn ngành CNTT hay Trí tuệ nhân tạo?
-18. Liệt kê các ngành có mức học phí dưới 20 triệu/năm?
-19. Quy trình nộp hồ sơ online và offline khác nhau như thế nào?
-20. Điểm chuẩn năm 2024 thay đổi như thế nào so với 2023?
-
---- NHÓM 3: CÂU HỎI ĐẶC BIỆT / NOISY INPUT (OUT OF SCOPE) ---
-21. hoc phi nganh cntp bao nhieu
-22. đc nộp hồ sơ onl k?
-23. Điểm chẩn luat năm ny?
-24. tgian đky xét tuyển?
-25. Học trườg có mắc k?
-26. Ngành nào ez xin việc?
-27. Học phí?
-28. co hb full k a
-29. lien he sdt nao
-30. truong o dau vay
+Học phí ngành Công nghệ thông tin là bao nhiêu
+Học phí ngành Luật là bao nhiêu
+Học phí ngành dược là bao nhiêu
+Điểm chuẩn các ngành năm nay là bao nhiêu
+Nhà trường có hỗ trợ gì cho sinh viên trong việc thực tập, làm đồ án và tìm việc sau khi tốt nghiệp
+Địa chỉ trường Đại học Bình Dương ở đâu
+Hotline tuyển sinh của trường là gì
+Email liên hệ tuyển sinh là gì
+Website chính thức của trường là gì
+Làm thế nào để liên hệ với phòng tuyển sinh
+Trường có những ngành đào tạo nào
+Trường có đào tạo ngành Trí tuệ nhân tạo không
+Trường có đào tạo thạc sĩ không
+Trường có đào tạo tiến sĩ không
+Các ngành thuộc khối Kinh tế gồm những ngành nào
+Các ngành thuộc khối Kỹ thuật gồm những ngành nào
+Các ngành thuộc khối Y Dược gồm những ngành nào
+Mã ngành Công nghệ thông tin là gì
+Mã ngành Luật là gì
+Thời gian đào tạo ngành CNTT là bao lâu
+Thời gian đào tạo ngành dược học là bao lâu
+Trường có những phương thức xét tuyển nào
+Hồ sơ xét tuyển gồm những gì
+Điều kiện xét tuyển theo học bạ như thế nào
+Điều kiện xét tuyển theo điểm thi THPT như thế nào
+Thời gian nộp hồ sơ xét tuyển năm nay khi nào
+Có thể nộp hồ sơ online không
+Quy trình đăng ký xét tuyển như thế nào
+Khi nào có kết quả xét tuyển
+Trường có học bổng không
+Điều kiện nhận học bổng là gì
+Có học bổng toàn phần không
+Trường có ký túc xá không
+Chi phí ký túc xá là bao nhiêu
+Trường có hỗ trợ tìm việc làm không
+Cơ hội việc làm sau khi tốt nghiệp ngành CNTT như thế nào
+Trường có liên kết với doanh nghiệp nào không
+Trường có chương trình trao đổi sinh viên quốc tế không
+Sinh viên có thể học song ngành không
+Có thể chuyển ngành sau khi nhập học không
+Thời gian bắt đầu năm học mới là khi nào
+Trường có đào tạo văn bằng 2 không
+Có thể học liên thông từ cao đẳng lên đại học không
+Trường có đào tạo từ xa không
+Các tổ hợp xét tuyển ngành CNTT là gì
+Các tổ hợp xét tuyển ngành Luật là gì
+Ngành nào đang được nhiều người quan tâm nhất hiện nay
+Tỷ lệ sinh viên có việc làm sau tốt nghiệp là bao nhiêu
+Trường có chương trình đào tạo quốc tế không
+Học phí có thể đóng theo kỳ không
+Có được hoãn học phí không
+Trường có câu lạc bộ sinh viên không
+Sinh viên có được làm thêm khi đi học không
+Ngành nào có học phí thấp nhất
+Ngành nào có học phí cao nhất
+Chương trình đào tạo ngành CNTT có gì đặc biệt
+Trường có phòng thí nghiệm thực hành không
+Sinh viên có được thực tập tại doanh nghiệp không
+Thời gian thực tập là bao lâu
+Trường có hỗ trợ chỗ ở cho sinh viên xa nhà không
+Có chế độ miễn giảm học phí cho sinh viên khó khăn không
+Trường có tổ chức ngày hội tuyển sinh không
+Làm sao để đăng ký tham quan trường
+Sinh viên tốt nghiệp được cấp bằng gì
+Bằng tốt nghiệp có được công nhận quốc tế không
+Trường có giảng viên nước ngoài không
+Ngôn ngữ giảng dạy chính là gì
+Trường có chương trình học bằng tiếng anh không
+Trường có thư viện không
+Giờ mở cửa thư viện là khi nào
+hoc phi nganh cntt bao nhieu
+dia chi truong o dau
+truong co nhung nganh nao
+ho so xet tuyen gom gi
+truong co hoc bong khong
+So sánh học phí ngành CNTT và ngành Luật
+So sánh điểm chuẩn ngành Kinh tế và ngành Kế toán năm nay
+So sánh điểm chuẩn năm 2024 và 2023 của ngành CNTT
+Học phí và điểm chuẩn ngành Công nghệ thông tin ra sao
+Điều kiện và thời gian xét tuyển theo học bạ như thế nào
+Trường có những phương thức xét tuyển nào và điều kiện từng phương thức
+Tôi có 18 điểm thì đậu được những ngành nào và học phí ra sao
+Ngành nào có điểm chuẩn thấp nhất và cao nhất hiện nay
+Quy trình nộp hồ sơ online và offline khác nhau như thế nào
+So sánh cơ hội việc làm giữa ngành CNTT và ngành Kinh tế
+Nếu tôi có 18 điểm thì nên đăng ký ngành nào
+Theo bạn, tôi nên chọn ngành CNTT hay Trí tuệ nhân tạo
+Tôi thích kinh doanh, nên học ngành nào
+Bạn có thể tư vấn ngành phù hợp cho người thích công nghệ không
+Tôi muốn làm bác sĩ, cần chuẩn bị gì
+Với học lực trung bình, tôi có thể đậu ngành nào
+Tôi nên xét tuyển theo học bạ hay điểm thi THPT
+Ngành nào dễ xin việc nhất sau khi ra trường
+Bạn có lời khuyên gì cho sinh viên năm nhất không
+Tôi đang phân vân giữa ngành Luật và Kinh tế, bạn tư vấn giúp tôi
+Nếu tôi giỏi toán nhưng yếu tiếng Anh, nên chọn ngành gì
+Tôi có thể vừa học vừa làm được không, ngành nào phù hợp
+Trường có những chính sách hỗ trợ sinh viên năm nhất trong thời gian đầu nhập học không
+Quy trình nhập học của tân sinh viên gồm những bước nào và cần chuẩn bị những giấy tờ gì
+Trường có hỗ trợ giới thiệu thực tập hoặc kết nối doanh nghiệp cho sinh viên không Việc này thường diễn ra vào năm mấy

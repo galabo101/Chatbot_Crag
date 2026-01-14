@@ -24,6 +24,25 @@ class QueryDecomposer:
     
     def should_decompose(self, query: str) -> Dict[str, any]:
         query_lower = query.lower().strip()
+        
+        # Rule-based: KHÔNG tách câu so sánh
+        comparison_patterns = [
+            r'^so\s*sánh',           # "So sánh..."
+            r'so\s*sánh\s+.+\s+và\s+',  # "So sánh X và Y"
+            r'khác\s*nhau',          # "khác nhau"
+            r'giống\s*nhau',         # "giống nhau"  
+            r'hơn\s+hay\s+',         # "hơn hay"
+            r'.+\s+hay\s+.+\s+tốt\s+hơn',  # "X hay Y tốt hơn"
+        ]
+        
+        for pattern in comparison_patterns:
+            if re.search(pattern, query_lower):
+                return {
+                    "should_decompose": False,
+                    "reason": "Comparison query - keep as single",
+                    "confidence": 0.0
+                }
+        
         signals = []        
 
         for pattern in self.multi_intent_patterns:
@@ -100,22 +119,29 @@ QUY TẮC QUAN TRỌNG:
 3. Mỗi câu hỏi con phải HOÀN CHỈNH, độc lập
 4. KHÔNG tạo thêm câu hỏi không có trong câu gốc
 5. TỐI ĐA 3 câu hỏi con
+6. KHÔNG TÁCH câu hỏi SO SÁNH (có từ "so sánh", "và", hoặc so sánh 2 thứ)
 
-VÍ DỤ ĐÚNG:
+VÍ DỤ ĐÚNG (CẦN PHÂN TÁCH):
 Input: "Học phí CNTT bao nhiêu và trường có học bổng không?"
 Output: ["Học phí ngành CNTT là bao nhiêu?", "Trường có học bổng không?"]
 
-VÍ DỤ SAI (KHÔNG PHÂN TÁCH):
-Input: "Tôi có 18 điểm thì có thể đậu vào ngành nào?"
-Output: ["Tôi có 18 điểm thì có thể đậu vào ngành nào?"]
-(Đây là 1 câu hỏi duy nhất, KHÔNG phân tách)
+VÍ DỤ SAI - CÂU SO SÁNH (KHÔNG TÁCH):
+Input: "So sánh điểm chuẩn ngành Kinh tế và ngành Kế toán năm nay"
+Output: ["So sánh điểm chuẩn ngành Kinh tế và ngành Kế toán năm nay"]
+(Đây là câu SO SÁNH 2 ngành, GIỮ NGUYÊN)
+
+Input: "So sánh học phí ngành CNTT và ngành Luật"
+Output: ["So sánh học phí ngành CNTT và ngành Luật"]
+(Đây là câu SO SÁNH, GIỮ NGUYÊN)
 
 Input: "Ngành nào có điểm chuẩn thấp nhất và cao nhất năm 2024?"
 Output: ["Ngành nào có điểm chuẩn thấp nhất và cao nhất năm 2024?"]
 (Đây là câu SO SÁNH CẶP, KHÔNG tách)
 
-Input: "Điều kiện xét tuyển ngành Logistics?"
-Output: ["Điều kiện xét tuyển ngành Logistics?"]
+VÍ DỤ SAI - CÂU ĐƠN (KHÔNG TÁCH):
+Input: "Tôi có 18 điểm thì có thể đậu vào ngành nào?"
+Output: ["Tôi có 18 điểm thì có thể đậu vào ngành nào?"]
+(Đây là 1 câu hỏi duy nhất, KHÔNG phân tách)
 
 CÂU HỎI CẦN XỬ LÝ:
 "{query}"

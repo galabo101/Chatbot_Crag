@@ -24,11 +24,21 @@ class SecurityManager:
         
         # Prompt injection patterns
         self.blacklist_patterns = [
-            r'(ignore|bỏ qua|forget).+(previous|trước|all).+(instructions|hướng dẫn)',
-            r'(you are|bạn là|act as|đóng vai).+(admin|god|developer)',
-            r'(show|reveal|hiển thị).+(prompt|source code|api key|database)',
+            # Ignore instructions (flexible order)
+            r'(ignore|bỏ qua|forget|quên).+(instruction|hướng dẫn)',
+            r'(ignore|bỏ qua|forget).+(previous|trước|all|toàn bộ)',
+            # Role playing
+            r'(you are|bạn là|act as|đóng vai|giả sử|từ bây giờ).+(admin|god|developer|quản trị|hệ thống|trợ lý)',
+            # Reveal secrets
+            r'(show|reveal|hiển thị|in ra|cho xem|tiết lộ|cho.+biết).+(prompt|source code|api key|database|cấu hình|config)',
+            r'api\s*key',
+            # SQL/XSS
             r'(SELECT|INSERT|UPDATE|DELETE|DROP)\s+',
             r'<script|javascript:|<%|\$\{',
+            # Direct requests
+            r'(system prompt|system instruction|hướng dẫn hệ thống)',
+            r'(toàn bộ prompt|full prompt|entire prompt)',
+            r'(không bị ràng buộc|không giới hạn|unrestricted)',
         ]
         
         print(f"✅ SecurityManager ready ({max_requests} req/{window_seconds}s, max {max_length} chars)")

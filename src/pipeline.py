@@ -7,6 +7,10 @@ from typing import Dict, Any
 
 sys.path.append(str(Path(__file__).parent))
 
+from logger import setup_logger
+
+logger = setup_logger("pipeline")
+
 from retrieval.crag_retriever import CRAGRetriever
 from retrieval.multi_query_retriever import MultiQueryRetriever
 from Advanced_Query.query_decomposer import QueryDecomposer
@@ -34,7 +38,7 @@ class RAGPipeline:
         model_config = EMBEDDING_MODELS[model_type]
         
         if self.verbose:
-            print(f"🔧 Initializing Pipeline ({model_type})...")
+            logger.info(f"Initializing Pipeline ({model_type})...")
 
         # Khởi tạo Retriever với model đã load sẵn
         self.retriever = CRAGRetriever(
@@ -56,7 +60,7 @@ class RAGPipeline:
         self.multi_retriever = MultiQueryRetriever(self.retriever)
         
         if self.verbose:
-            print("✅ Pipeline ready\n")
+            logger.info("Pipeline ready")
     
     def run(self, query: str, user_id: str = "default") -> Dict[str, Any]:
         is_valid, error_msg = self.security.validate_and_limit(user_id, query)
@@ -70,7 +74,7 @@ class RAGPipeline:
         start_time = time.time()
         
         if self.verbose:
-            print(f"🔎 Query: {query}\n")
+            logger.info(f"Query: {query}")
         
         # Query Decomposition
         decompose_start = time.time()
@@ -98,7 +102,7 @@ class RAGPipeline:
         retrieval_time = time.time() - retrieval_start
         
         if self.verbose:
-            print(f"   ⏱️  Retrieval time: {retrieval_time:.3f}s\n")
+            logger.info(f"Retrieval time: {retrieval_time:.3f}s")
         
         # Generation
         generation_start = time.time()
@@ -108,13 +112,11 @@ class RAGPipeline:
         total_time = time.time() - start_time
         
         if self.verbose:
-            print(f"💬 Answer Generated")
-            print(f"   Sources: {generation_result['num_sources']}")
-            print(f"   ⏱️  Generation time: {generation_time:.3f}s\n")
-            print(f"⏱️  Total Pipeline Time: {total_time:.3f}s")
-            print(f"   - Decomposition: {decompose_time:.3f}s")
-            print(f"   - Retrieval: {retrieval_time:.3f}s")
-            print(f"   - Generation: {generation_time:.3f}s")
+            logger.info(
+                f"Answer generated | sources={generation_result['num_sources']} | "
+                f"total={total_time:.3f}s (decomp={decompose_time:.3f}s, "
+                f"retrieval={retrieval_time:.3f}s, generation={generation_time:.3f}s)"
+            )
         
         return {
             "query": query,
@@ -137,7 +139,7 @@ class RAGPipeline:
         if len(sub_queries) == 1:
             # Single query retrieval
             if self.verbose:
-                print("🔍 Single-Query Retrieval")
+                logger.info("Single-Query Retrieval")
             
             result = self.retriever.retrieve(
                 sub_queries[0],
@@ -149,11 +151,12 @@ class RAGPipeline:
             graded_stats = result["graded_stats"]
             
             if self.verbose:
-                print(f"\n📊 Grading Stats:")
-                print(f"   ✓ Correct: {graded_stats['correct']}")
-                print(f"   ⚠ Ambiguous: {graded_stats['ambiguous']}")
-                print(f"   ✗ Incorrect: {graded_stats['incorrect']}")
-                print(f"   → Retrieved: {len(refined_chunks)} chunks")
+                logger.info(
+                    f"Grading: correct={graded_stats['correct']}, "
+                    f"ambiguous={graded_stats['ambiguous']}, "
+                    f"incorrect={graded_stats['incorrect']} | "
+                    f"retrieved={len(refined_chunks)} chunks"
+                )
         
         else:
             # Multi-query retrieval

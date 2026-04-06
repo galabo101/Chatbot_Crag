@@ -1,159 +1,304 @@
-# 🎓 BDU Chatbot RAG - Hệ thống Tư vấn Tuyển sinh Thông minh
+# 🎓 BDU Chatbot RAG — Intelligent Admission Consulting System
 
-[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://www.python.org/)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.28+-red.svg)](https://streamlit.io/)
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Streamlit](https://img.shields.io/badge/Streamlit-1.51+-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
+[![Qdrant](https://img.shields.io/badge/Qdrant-Vector_DB-DC382D?logo=qdrant&logoColor=white)](https://qdrant.tech/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-> **Đồ án tốt nghiệp** - Sinh viên: Nguyễn Bá Trưởng (18050082)  
-> Trường Đại học Bình Dương
+> **Graduation Project** — Nguyễn Bá Trưởng · Binh Duong University
 
-## 📋 Giới thiệu
+Production-ready AI chatbot built with **Corrective RAG (CRAG)** architecture — automatically evaluates, corrects, and refines retrieval results before generating LLM responses. Features multi-model failover, query decomposition, and REST API for external integration.
 
-Chatbot tư vấn tuyển sinh sử dụng kỹ thuật **Retrieval-Augmented Generation (RAG)** kết hợp với **CRAG (Corrective RAG)** để cung cấp thông tin tuyển sinh chính xác cho Trường Đại học Bình Dương.
+---
 
-### Điểm nổi bật
-- 🔍 **CRAG Retriever**: Tự động đánh giá và sửa lỗi kết quả retrieval
-- 🧠 **Multi-Query Expansion**: Mở rộng truy vấn để tìm kiếm toàn diện hơn
-- ⚡ **Query Decomposition**: Phân tách câu hỏi phức tạp thành các câu đơn giản
-- 🛡️ **Security Manager**: Chống prompt injection và rate limiting
-- 📊 **Admin Dashboard**: Quản lý dữ liệu và theo dõi thống kê
+## 🔑 Key Technical Highlights
 
-## 🏗️ Kiến trúc hệ thống
+| Capability | Implementation |
+|---|---|
+| **RAG Backend** | End-to-end pipeline: Chunking → Embedding → Vector Store → Retrieval → Generation |
+| **CRAG (Corrective RAG)** | LLM-based relevance grading with 3-tier correction: Knowledge Refinement / Hybrid / Web Search |
+| **LLM Integration** | Groq API (LLaMA 3.3 70B) with multi-model failover pool & response caching |
+| **Prompt Engineering** | Task-specific prompts for generation, evaluation, decomposition, and expansion |
+| **Embedding + Vector DB** | Google EmbeddingGemma-300M + Qdrant with cosine similarity search |
+| **Data Pipeline** | Multi-format ingestion (PDF/DOCX/Excel/Image → OCR → Chunk → Index) |
+| **REST API** | FastAPI with Pydantic schemas, CORS, structured error handling |
+| **Query Processing** | Decomposition (complex → sub-queries) + Expansion (paraphrase generation + filtering) |
+| **Security** | Prompt injection detection, rate limiting, file validation, input sanitization |
+| **Evaluation** | Automated benchmark system (100 questions, 82% accuracy, PASS/FAIL metrics) |
+| **Logging** | Centralized structured logging with `RotatingFileHandler` |
 
+---
+
+## ✨ Features
+
+| Feature | Description |
+|---|---|
+| 🔍 **CRAG Retriever** | Auto-evaluates & self-corrects retrieval quality |
+| 🧠 **Lazy Query Expansion** | Parallel expansion triggered only when initial results are insufficient |
+| ⚡ **Query Decomposition** | Splits complex multi-intent questions into independent sub-queries |
+| 🛡️ **Security Manager** | Blocks prompt injection, enforces rate limits |
+| 📊 **Admin Dashboard** | Data management, upload documents, chat analytics |
+| 🌐 **REST API** | FastAPI endpoints for external system integration |
+| 💾 **Response Cache** | MD5-based LLM response caching to reduce latency |
+| 🔄 **LLM Failover** | Automatic fallback across model pool on failure |
+
+---
+
+## 🏗️ System Architecture
+
+```mermaid
+flowchart TB
+    subgraph Client
+        A["👤 User Query"]
+        B["🖥️ Streamlit UI"]
+        C["🌐 REST API (FastAPI)"]
+    end
+
+    subgraph Pipeline["RAG Pipeline"]
+        D["🛡️ Security Manager"]
+        E["✂️ Query Decomposer"]
+        F["🔍 CRAG Retriever"]
+    end
+
+    subgraph Retrieval["CRAG Flow"]
+        G["📦 Qdrant Vector DB"]
+        H["📊 Relevance Evaluator"]
+        I{"Enough CORRECT?"}
+        J["🔄 Query Expansion"]
+        K["🌐 Web Search Fallback"]
+    end
+
+    subgraph Generation
+        L["🤖 Groq LLM (Failover Pool)"]
+        M["📝 Response + Sources"]
+    end
+
+    A --> B & C
+    B & C --> D
+    D --> E
+    E --> F
+    F --> G
+    G --> H
+    H --> I
+    I -- "≥2 CORRECT" --> L
+    I -- "Insufficient" --> J
+    J --> G
+    I -- "0 results" --> K
+    K --> L
+    L --> M
+    M --> B & C
 ```
-┌─────────────────┐     ┌────────────────────┐     ┌─────────────────┐
-│   User Query    │────▶│ Query Decomposer   │────▶│  CRAG Retriever │
-└─────────────────┘     │ (Phân tách câu hỏi)│     │ + Query Expander│
-                        └────────────────────┘     └────────┬────────┘
-                                                            │
-                                                   ┌────────▼────────┐
-                                                   │   Qdrant VectorDB│
-                                                   └────────┬────────┘
-                                                            │
-                        ┌──────────────────┐                │
-                        │     Groq LLM     │◀───────────────┘
-                        │ (LLaMA 3.3 70B)  │
-                        └────────┬─────────┘
-                                 │
-                        ┌────────▼─────────┐
-                        │    Response      │
-                        └──────────────────┘
+
+---
+
+## 🔄 CRAG Pipeline Flow
+
+```mermaid
+flowchart LR
+    A["Query"] --> B["Embed & Search\n(Qdrant)"]
+    B --> C["LLM Grading\n(Confidence Score)"]
+    C --> D{"Action?"}
+    D -- "≥2 CORRECT" --> E["Knowledge\nRefinement"]
+    D -- "Mixed results" --> F["Hybrid\n(DB + Web)"]
+    D -- "All INCORRECT" --> G["Web Search\nFallback"]
+    E & F & G --> H["LLM Generate\n(Failover Pool)"]
+    H --> I["Response\n+ Sources"]
 ```
 
-## 🛠️ Công nghệ sử dụng
+---
 
-| Thành phần | Công nghệ |
-|------------|-----------|
+## 🛠️ Tech Stack
+
+| Component | Technology |
+|---|---|
+| **API Server** | FastAPI + Uvicorn |
 | **Frontend** | Streamlit |
-| **LLM** | Groq API (LLaMA 3.3 70B) |
-| **Embedding** | Google EmbeddingGemma-300M |
-| **Vector DB** | Qdrant (Local) |
-| **Database** | SQLite |
+| **LLM** | Groq API (LLaMA 3.3 70B, GPT-OSS 120B) |
+| **Embedding** | Google EmbeddingGemma-300M (768 dims) |
+| **Vector DB** | Qdrant (embedded mode, Cosine similarity) |
+| **Text Splitting** | LangChain `RecursiveCharacterTextSplitter` |
+| **Document Parsing** | PyMuPDF (PDF), python-docx, Pandas (Excel) |
+| **Database** | SQLite (chat history, document management) |
+| **Security** | Custom SecurityManager (regex-based injection detection) |
+| **Logging** | Python `logging` + `RotatingFileHandler` |
 
-## 📁 Cấu trúc thư mục
+---
+
+## 📁 Project Structure
 
 ```
 Chatbot_Crag/
-├── app/
-│   ├── streamlit_app.py          # Giao diện chatbot chính
-│   └── admin_page.py             # Trang quản trị
-├── src/
-│   ├── pipeline.py               # RAG Pipeline chính
-│   ├── config.py                 # Cấu hình hệ thống
-│   ├── database.py               # SQLite database
-│   ├── admin_backend.py          # Backend cho admin
+├── api/                              # REST API layer
+│   ├── main.py                       # FastAPI app (lifespan, CORS, endpoints)
+│   └── schemas.py                    # Pydantic request/response models
+├── app/                              # Frontend
+│   ├── streamlit_app.py              # Chat UI with session management
+│   └── admin_page.py                 # Admin dashboard (stats, upload, manage)
+├── src/                              # Core logic
+│   ├── pipeline.py                   # Main RAG pipeline orchestrator
+│   ├── config.py                     # Centralized configuration
+│   ├── database.py                   # SQLite data layer
+│   ├── logger.py                     # Structured logging setup
+│   ├── admin_backend.py              # Admin operations backend
 │   ├── retrieval/
-│   │   ├── crag_retriever.py     # CRAG implementation
-│   │   ├── multi_query_retriever.py
-│   │   ├── relevance_evaluator.py
-│   │   ├── cross_encoder_reranker.py
-│   │   └── web_search_corrector.py
+│   │   ├── crag_retriever.py         # CRAG: retrieve → evaluate → correct
+│   │   ├── relevance_evaluator.py    # LLM-based relevance grading
+│   │   ├── multi_query_retriever.py  # Multi-query merge & dedup
+│   │   ├── cross_encoder_reranker.py # Cross-encoder reranking
+│   │   └── web_search_corrector.py   # Google CSE fallback
 │   ├── generation/
-│   │   └── groq_llm.py           # LLM wrapper
+│   │   └── groq_llm.py              # LLM wrapper (failover + cache)
 │   ├── embedding/
-│   │   └── indexer.py            # Vector indexer
+│   │   └── indexer.py               # Qdrant vector indexer
 │   ├── Advanced_Query/
-│   │   ├── query_decomposer.py   # Phân tách câu hỏi
-│   │   └── query_expander.py     # Mở rộng truy vấn
+│   │   ├── query_decomposer.py      # Multi-intent decomposition
+│   │   └── query_expander.py        # Paraphrase expansion + filtering
 │   └── security/
-│       └── security.py           # Chống injection & rate limit
+│       └── security.py              # Injection detection & rate limiting
 ├── data/
-│   ├── chunks.jsonl              # Dữ liệu đã chunk
-│   └── vietnamese-stopwords.txt  # Stopwords tiếng Việt
-├── qdrant_data/                  # Vector database
+│   ├── chunks.jsonl                  # Pre-chunked knowledge base
+│   └── vietnamese-stopwords.txt      # Vietnamese NLP stopwords
+├── logs/                             # Auto-generated log files
+├── qdrant_data/                      # Vector database storage
+├── .env.example                      # Environment template
 ├── requirements.txt
-├── qdrant_setup.py               # Script setup Qdrant
-├── benchmark.py                  # Script đánh giá
+├── benchmark_simple.py               # Automated evaluation script
 └── README.md
 ```
 
-## 🚀 Hướng dẫn cài đặt
+---
 
-### Yêu cầu hệ thống
+## 🚀 Getting Started
+
+### Prerequisites
 - Python 3.10+
 - RAM: 8GB+
-- Disk: ~5GB
 
-### Cài đặt
+### 1. Clone & Setup
 
 ```bash
-# 1. Clone repository
 git clone https://github.com/galabo101/Chatbot_Crag.git
 cd Chatbot_Crag
 
-# 2. Tạo virtual environment
 python -m venv venv
-venv\Scripts\activate  # Windows
+venv\Scripts\activate        # Windows
+# source venv/bin/activate   # Linux/Mac
 
-# 3. Cài đặt dependencies
 pip install -r requirements.txt
-
-# 4. Đăng nhập Hugging Face (để tải model)
-huggingface-cli login
-
-# 5. Cấu hình API keys trong file .env
-# GROQ_API_KEY=your_key_here
 ```
 
-### Chạy ứng dụng
+### 2. Configuration
 
 ```bash
-streamlit run app/streamlit_app.py
+cp .env.example .env
+# Fill in your API keys
 ```
 
-Truy cập: `http://localhost:8501`
+| Variable | Required | Description |
+|---|---|---|
+| `GROQ_API_KEY` | ✅ | API key from [Groq Console](https://console.groq.com/) |
+| `GOOGLE_API_KEY` | ❌ | For web search fallback |
+| `GOOGLE_CSE_ID` | ❌ | Custom Search Engine ID |
 
-## 📊 Kết quả Benchmark
+### 3. Run
 
-| Kết quả | Số lượng | Tỷ lệ |
-|---------|----------|-------|
+**Streamlit UI** (chat interface):
+```bash
+streamlit run app/streamlit_app.py
+# → http://localhost:8501
+```
+
+**FastAPI** (REST API):
+```bash
+uvicorn api.main:app --reload --port 8000
+# → http://localhost:8000/docs (Swagger UI)
+```
+
+---
+
+## 🌐 API Reference
+
+### `POST /chat`
+
+Send an admission consulting question.
+
+**Request:**
+```json
+{
+  "query": "Học phí ngành Công nghệ thông tin là bao nhiêu?",
+  "user_id": "user_123"
+}
+```
+
+**Response:**
+```json
+{
+  "query": "Học phí ngành Công nghệ thông tin là bao nhiêu?",
+  "answer": "Học phí ngành CNTT tại BDU năm 2025 là...",
+  "sources": [
+    {
+      "chunk_id": "hoc-phi-2025_chunk_1",
+      "url": "https://bdu.edu.vn/hoc-phi",
+      "title": "Học phí năm 2025",
+      "score": 0.92,
+      "type": "text"
+    }
+  ],
+  "num_sources": 1,
+  "timing": {
+    "decomposition": 0.15,
+    "retrieval": 1.23,
+    "generation": 2.45,
+    "total": 3.83
+  },
+  "model_type": "gemma"
+}
+```
+
+### `GET /health`
+
+System health check with component status.
+
+```json
+{
+  "status": "healthy",
+  "version": "1.0.0",
+  "components": {
+    "pipeline": "ready",
+    "qdrant": "connected",
+    "llm": "available"
+  },
+  "uptime_seconds": 3600.5
+}
+```
+
+> 📖 Full interactive docs at **Swagger UI**: `http://localhost:8000/docs`
+
+---
+
+## 📊 Benchmark Results
+
+Automated evaluation on 100 real admission questions:
+
+| Result | Count | Rate |
+|---|---|---|
 | ✅ PASS | 82 | 82% |
-| ❌ FAIL (Thiếu dữ liệu) | 15 | 15% |
-| ❌ FAIL (Trả lời sai) | 3 | 3% |
-| **Tổng** | **100** | **100%** |
+| ❌ FAIL (Missing data) | 15 | 15% |
+| ❌ FAIL (Wrong answer) | 3 | 3% |
+| **Total** | **100** | **100%** |
 
-**Độ chính xác: 82%** | Tỷ lệ lỗi thực sự: 3%
+**Accuracy: 82%** · True error rate: 3% · Avg response time: ~3.8s
 
-## 📝 Tính năng chính
+---
 
-### 1. Chatbot Interface
-- Trả lời câu hỏi về tuyển sinh
-- Hỗ trợ tiếng Việt có dấu và không dấu
-- Trích dẫn nguồn cho mỗi câu trả lời
+## 👨‍💻 Author
 
-### 2. Admin Dashboard
-- Thống kê lượt chat theo thời gian
-- Phân tích từ khóa trending
-- Upload và quản lý dữ liệu
-- Đồng bộ dữ liệu Qdrant ↔ SQLite
-
-## 👨‍💻 Tác giả
-
-**Nguyễn Bá Trưởng**  
-- MSSV: 18050082  
-- Email: 18050082@student.bdu.edu.vn  
-- Trường Đại học Bình Dương
+**Nguyễn Bá Trưởng**
+- Student ID: 18050082
+- Email: 18050082@student.bdu.edu.vn
+- Binh Duong University
 
 ## 📄 License
 
-MIT License - Xem file [LICENSE](LICENSE) để biết thêm chi tiết.
+MIT License — See [LICENSE](LICENSE) for details.

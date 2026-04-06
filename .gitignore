@@ -6,9 +6,6 @@
 # Ignore EVERYTHING first
 *
 
-# =========================================
-# WHITELIST: Files/Folders SẼ PUSH lên Git
-# =========================================
 
 # Root files
 !.gitignore
@@ -71,3 +68,17 @@
 
 !src/security/
 !src/security/security.py
+
+!src/logger.py
+
+# API folder
+!api/
+!api/__init__.py
+!api/main.py
+!api/schemas.py
+
+# Env template
+!.env.example
+
+# Ignore logs
+logs/

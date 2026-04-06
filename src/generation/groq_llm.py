@@ -5,8 +5,11 @@ from typing import List, Dict, Any, Optional
 from groq import Groq
 from dotenv import load_dotenv
 from config import LLM_MODEL, TEMPERATURE, MAX_TOKENS
+from logger import setup_logger
 
 load_dotenv()
+
+logger = setup_logger("groq_llm")
 
 
 class SimpleCache:    
@@ -45,9 +48,9 @@ class GroqLLM:
         self.failure_counts = {model: 0 for model in self.model_pool}
         self.max_failures = 3
         
-        print(f"✅ Groq LLM initialized: {self.model_pool}")
+        logger.info(f"Groq LLM initialized: {self.model_pool}")
         if enable_cache:
-            print(f"   💾 Cache enabled (max 50 entries)")
+            logger.info("Cache enabled (max 50 entries)")
 
     def build_simple_prompt(self, query: str, context_chunks: List[Dict]) -> str:
         """Enhanced prompt with security"""
@@ -181,16 +184,16 @@ TRẢ LỜI:"""
                 
                 answer = response.choices[0].message.content.strip()
                 self.failure_counts[model_name] = 0
-                print(f"[LLM] ✅ {model_name}")
+                logger.info(f"Model {model_name} succeeded")
                 return answer
             
             except Exception as e:
                 error_msg = str(e).lower()
                 self.failure_counts[model_name] += 1
-                print(f"[LLM] ❌ {model_name}: {str(e)[:100]}")                
+                logger.warning(f"Model {model_name} failed: {str(e)[:100]}")                
  
                 if "rate" in error_msg or "limit" in error_msg:
-                    print(f"[LLM] ⏳ Rate limit, waiting 2s...")
+                    logger.info("Rate limit hit, waiting 2s...")
                     time.sleep(2)
                     try:
                         response = self.client.chat.completions.create(
@@ -212,7 +215,7 @@ TRẢ LỜI:"""
         if self.enable_cache:
             cached = self.cache.get(query, context_chunks)
             if cached:
-                print("[LLM] 💾 Cache hit")
+                logger.debug("Cache hit")
                 return cached        
         # Build prompt và gọi LLM
         prompt = self.build_simple_prompt(query, context_chunks)

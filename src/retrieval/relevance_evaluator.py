@@ -3,6 +3,9 @@ from typing import List, Dict
 from groq import Groq
 import json
 import re
+from logger import setup_logger
+
+logger = setup_logger("relevance_evaluator")
 
 
 class RelevanceEvaluator:    
@@ -68,7 +71,7 @@ CHỈ trả về JSON hợp lệ."""
             
             # Validate số lượng
             if len(evals) != len(documents):
-                print(f"[Evaluator] ⚠️ Mismatch: {len(evals)} evals for {len(documents)} docs")
+                logger.warning(f"Mismatch: {len(evals)} evals for {len(documents)} docs")
                 # Fill thiếu bằng default
                 default_eval = {"label": "AMBIGUOUS", "confidence": 0.0}
                 evals = evals[:len(documents)] + [default_eval] * (len(documents) - len(evals))
@@ -89,17 +92,17 @@ CHỈ trả về JSON hợp lệ."""
                 
                 # Nếu CORRECT nhưng không tự tin (< 0.7) thì hạ xuống AMBIGUOUS
                 if label == "CORRECT" and confidence < self.confidence_threshold:
-                    print(f"[Eval] Downgraded CORRECT (conf={confidence:.2f}) to AMBIGUOUS")
+                    logger.debug(f"Downgraded CORRECT (conf={confidence:.2f}) to AMBIGUOUS")
                     label = "AMBIGUOUS"              
                 
                 final_labels.append(label)
             
             # Thống kê để debug
-            print(f"[Batch Eval] ✅ Rated {len(final_labels)} docs (Threshold: {self.confidence_threshold})")
+            logger.info(f"Rated {len(final_labels)} docs (threshold={self.confidence_threshold})")
             return final_labels
             
         except Exception as e:
-            print(f"[Evaluator] ❌ Error: {e}")
+            logger.error(f"Evaluation error: {e}")
             return ["AMBIGUOUS"] * len(documents)
     
     def _extract_relevant_content(self, query: str, document: Dict, max_length: int = 600) -> str:

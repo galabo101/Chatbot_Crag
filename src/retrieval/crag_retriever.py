@@ -11,6 +11,10 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
 
+from logger import setup_logger
+
+logger = setup_logger("crag_retriever")
+
 from .relevance_evaluator import RelevanceEvaluator 
 from .web_search_corrector import WebSearchCorrector
 from Advanced_Query.query_expander import QueryExpander
@@ -48,18 +52,18 @@ class CRAGRetriever:
         self.relevance_threshold = relevance_threshold
         self.min_correct_threshold = min_correct_threshold
         
-        print(f"📦 Connecting to Qdrant: {qdrant_path}")
+        logger.info(f"Connecting to Qdrant: {qdrant_path}")
         self.client = QdrantClient(path=qdrant_path)
         
         if preloaded_model:
-            print("✅ Using preloaded embedding model")
+            logger.info("Using preloaded embedding model")
             self.model = preloaded_model
         else:
-            print(f"🔧 Loading embedding model: {embedding_model}")
+            logger.info(f"Loading embedding model: {embedding_model}")
             try:
                 self.model = SentenceTransformer(embedding_model)
             except Exception as e:
-                print(f"⚠️ Connection failed ({str(e)[:50]}...). Trying offline mode...")
+                logger.warning(f"Connection failed ({str(e)[:50]}...). Trying offline mode...")
                 # Thử load offline từ cache
                 self.model = SentenceTransformer(embedding_model, local_files_only=True)
         
@@ -75,7 +79,7 @@ class CRAGRetriever:
             embedding_model=self.model  # Dùng chung model
         )
         
-        print("✅ True CRAG Retriever ready (Optimized Lazy Expansion mode)")
+        logger.info("CRAG Retriever ready (Optimized Lazy Expansion mode)")
     
     def embed_query(self, query: str) -> np.ndarray:
         # Embed query with normalization
@@ -139,7 +143,7 @@ class CRAGRetriever:
         return candidates
     
     def evaluate_relevance(self, query: str, candidates: List[Dict]) -> Dict[str, List[Dict]]:
-        print(f"[CRAG] Evaluating {len(candidates)} candidates...")
+        logger.info(f"Evaluating {len(candidates)} candidates...")
         
         labels = self.evaluator.evaluate_batch(query, candidates)
         
@@ -152,10 +156,11 @@ class CRAGRetriever:
         for doc, label in zip(candidates, labels):
             graded[label.lower()].append(doc)
         
-        print(f"[CRAG] Evaluation results:")
-        print(f"   ✅ CORRECT: {len(graded['correct'])}")
-        print(f"   ⚠️  AMBIGUOUS: {len(graded['ambiguous'])}")
-        print(f"   ❌ INCORRECT: {len(graded['incorrect'])}")
+        logger.info(
+            f"Evaluation: correct={len(graded['correct'])}, "
+            f"ambiguous={len(graded['ambiguous'])}, "
+            f"incorrect={len(graded['incorrect'])}"
+        )
         
         return graded
     
@@ -181,16 +186,16 @@ class CRAGRetriever:
         graded: Dict[str, List[Dict]],
         action: str
     ) -> List[Dict]:
-        print(f"[CRAG] Action: {action}")
+        logger.info(f"Action: {action}")
         
         if action == "WEB_SEARCH":
             web_results = self.web_corrector.search(query, max_results=3)
-            print(f"[CRAG] Using {len(web_results)} web search results")
+            logger.info(f"Using {len(web_results)} web search results")
             return web_results
         
         elif action == "KNOWLEDGE_REFINEMENT":
             refined = graded["correct"][:5]
-            print(f"[CRAG] Using {len(refined)} correct documents")
+            logger.info(f"Using {len(refined)} correct documents")
             return refined
         
         else:  # HYBRID
@@ -200,7 +205,7 @@ class CRAGRetriever:
             web_results = self.web_corrector.search(query, max_results=2)
             
             combined = internal + web_results
-            print(f"[CRAG] Hybrid: {len(internal)} internal + {len(web_results)} web")
+            logger.info(f"Hybrid: {len(internal)} internal + {len(web_results)} web")
             return combined
     
     def retrieve(
@@ -211,12 +216,12 @@ class CRAGRetriever:
     ) -> Dict[str, Any]:
 
         # INITIAL RETRIEVAL 
-        print("[CRAG] Phase 1: Initial retrieval...")        
+        logger.info("Phase 1: Initial retrieval...")        
         query_vector = self.embed_query(query)
         initial_candidates = self.semantic_search(query_vector, top_k=top_k_initial)
         
         if len(initial_candidates) == 0:
-            print("[CRAG] No candidates found")
+            logger.warning("No candidates found")
             return {
                 "query": query,
                 "refined_chunks": [],
@@ -231,8 +236,7 @@ class CRAGRetriever:
         expansion_triggered = False
         
         if self.needs_expansion(graded):
-            print(f"\n[CRAG] ⚠️  Insufficient CORRECT chunks ({len(graded['correct'])} < {self.min_correct_threshold})")
-            print("[CRAG] 🔄 Triggering Query Expansion...")
+            logger.warning(f"Insufficient CORRECT chunks ({len(graded['correct'])} < {self.min_correct_threshold}), triggering expansion...")
             
             expansion_triggered = True
             
@@ -252,7 +256,7 @@ class CRAGRetriever:
                 exp_vector = self.embed_query(exp_q)
                 return self.semantic_search(exp_vector, top_k=top_k_initial)
             
-            print(f"[CRAG] 🚀 Parallel expansion with {len(expanded_queries)} queries...")
+            logger.info(f"Parallel expansion with {len(expanded_queries)} queries...")
             with ThreadPoolExecutor(max_workers=max(1, min(len(expanded_queries), 3))) as executor:           
                 future_to_query = {
                     executor.submit(search_expanded_query, eq): eq 
@@ -262,7 +266,7 @@ class CRAGRetriever:
                     exp_q = future_to_query[future]
                     try:
                         exp_results = future.result()
-                        print(f"[CRAG]    ✓ Expanded: {exp_q[:50]}... ({len(exp_results)} results)")                        
+                        logger.debug(f"Expanded: {exp_q[:50]}... ({len(exp_results)} results)")                        
                         # Only add new chunks
                         for cand in exp_results:
                             cand_id = cand.get("chunk_id")
@@ -270,15 +274,15 @@ class CRAGRetriever:
                                 seen_ids.add(cand_id)
                                 expansion_candidates.append(cand)
                     except Exception as e:
-                        print(f"[CRAG]    ✗ Expansion error for '{exp_q[:30]}...': {e}")
+                        logger.error(f"Expansion error for '{exp_q[:30]}...': {e}")
             
-            print(f"[CRAG] Found {len(expansion_candidates)} new chunks via parallel expansion")            
+            logger.info(f"Found {len(expansion_candidates)} new chunks via parallel expansion")            
             
             all_candidates = initial_candidates + expansion_candidates
             graded = self.evaluate_relevance(query, all_candidates)
         
         else:
-            print(f"[CRAG] ✅ Sufficient CORRECT chunks ({len(graded['correct'])}), no expansion needed")
+            logger.info(f"Sufficient CORRECT chunks ({len(graded['correct'])}), no expansion needed")
         
         # DECIDE ACTION & REFINE 
         action = self.decide_action(graded)
@@ -315,7 +319,7 @@ class CRAGRetriever:
                     if injected:
                         injected["injected_fallback"] = True
                         refined_chunks.insert(0, injected)  # Thêm vào đầu
-                        print(f"[CRAG] ⚡ Injected fallback chunk: {target_chunk_id}")
+                        logger.info(f"Injected fallback chunk: {target_chunk_id}")
         
         return refined_chunks
     
@@ -351,15 +355,11 @@ class CRAGRetriever:
                     "source": "fallback_inject"
                 }
         except Exception as e:
-            print(f"[CRAG] ⚠️ Fallback fetch error: {e}")
+            logger.error(f"Fallback fetch error: {e}")
         
         return None
     
-    def close(self):     #Close connections
+    def close(self):
+        """Close Qdrant connection."""
         if hasattr(self.client, 'close'):
-            self.client.close()
-        return None
-    
-    def close(self):     #Close connections
-        if hasattr(self.client, 'close'):
-            self.client.close()
+            self.client.close()

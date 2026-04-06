@@ -14,17 +14,15 @@ Production-ready AI chatbot built with **Corrective RAG (CRAG)** architecture �
 
 ## Demo
 
-<!-- Thêm ảnh demo vào thư mục docs/ rồi bỏ comment dòng dưới -->
-<!-- ![Chat Demo](docs/demo_chat.png) -->
-<!-- ![Admin Dashboard](docs/demo_admin.png) -->
-<!-- ![Swagger UI](docs/demo_swagger.png) -->
+![Chat Demo](docs/demo_chat.png)
+![Admin Dashboard](docs/demo_admin.png)
+![Swagger UI](docs/demo_swagger.png)
 
 ---
 
 ## System Architecture
 
-<!-- Render PlantUML diagram thành PNG rồi thêm vào đây -->
-<!-- ![Architecture](docs/architecture.png) -->
+![Architecture](docs/architecture.png)
 
 ---
 
@@ -133,6 +131,7 @@ Các tham số được tinh chỉnh qua benchmark 100 câu hỏi:
 
 ```
 Chatbot_Crag/
+├── docs/                             # Documentation images
 ├── api/                              # REST API layer (FastAPI)
 │   ├── __init__.py
 │   ├── main.py                       # App factory, lifespan, CORS, 3 endpoints

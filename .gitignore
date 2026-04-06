@@ -77,6 +77,12 @@
 !api/main.py
 !api/schemas.py
 
+# Docs (images, diagrams)
+!docs/
+!docs/*.png
+!docs/*.jpg
+!docs/*.svg
+
 # Env template
 !.env.example
 

@@ -1,7 +1,3 @@
-"""
-Pydantic models cho BDU Chatbot API.
-Định nghĩa request/response schemas cho tất cả endpoints.
-"""
 
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
@@ -116,3 +112,39 @@ class HealthResponse(BaseModel):
         default_factory=dict
     )
     uptime_seconds: Optional[float] = None
+
+
+class SearchRequest(BaseModel):
+    """Request body cho /search endpoint (chỉ retrieval, không generation)."""
+    query: str = Field(
+        ...,
+        min_length=1,
+        max_length=500,
+        description="Câu truy vấn tìm kiếm",
+        examples=["Học phí ngành CNTT"]
+    )
+    top_k: int = Field(
+        default=5,
+        ge=1,
+        le=20,
+        description="Số lượng kết quả trả về (1-20)"
+    )
+
+
+class SearchResult(BaseModel):
+    """Một kết quả tìm kiếm."""
+    chunk_id: Optional[str] = None
+    content: str = Field(description="Nội dung chunk")
+    score: float = Field(description="Cosine similarity score")
+    title: Optional[str] = None
+    url: Optional[str] = None
+    type: str = "text"
+
+
+class SearchResponse(BaseModel):
+    """Response body cho /search endpoint."""
+    query: str
+    results: List[SearchResult] = Field(default_factory=list)
+    total: int = 0
+    search_time: float = Field(description="Thời gian tìm kiếm (seconds)")
+

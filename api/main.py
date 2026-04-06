@@ -18,7 +18,8 @@ load_dotenv(PROJECT_ROOT / ".env")
 
 from api.schemas import (
     ChatRequest, ChatResponse, ErrorResponse,
-    HealthResponse, SourceInfo, TimingInfo, GradedStats
+    HealthResponse, SourceInfo, TimingInfo, GradedStats,
+    SearchRequest, SearchResponse, SearchResult
 )
 from src.logger import setup_logger
 from src.pipeline import RAGPipeline
@@ -207,3 +208,56 @@ async def chat(request: ChatRequest):
             status_code=500,
             detail="Lỗi hệ thống. Vui lòng thử lại sau."
         )
+
+
+@app.post(
+    "/search",
+    response_model=SearchResponse,
+    tags=["Search"],
+    summary="Tìm kiếm tài liệu (chỉ retrieval, không LLM)"
+)
+async def search(request: SearchRequest):
+    """
+    Semantic search trực tiếp trong Vector DB.
+    Trả về chunks liên quan nhất mà không qua LLM generation.
+    Dùng cho: tìm kiếm tài liệu, debug retrieval, integration.
+    """
+    if not _state["pipeline"]:
+        raise HTTPException(status_code=503, detail="Pipeline chưa sẵn sàng.")
+
+    logger.info(f"🔍 Search: {request.query[:80]}... (top_k={request.top_k})")
+
+    try:
+        import time
+        start = time.time()
+
+        retriever = _state["pipeline"].retriever
+        query_vector = retriever.embed_query(request.query)
+        candidates = retriever.semantic_search(query_vector, top_k=request.top_k)
+
+        search_time = time.time() - start
+
+        results = [
+            SearchResult(
+                chunk_id=c.get("chunk_id"),
+                content=c.get("content", "")[:500],
+                score=round(c.get("score", 0), 4),
+                title=c.get("title"),
+                url=c.get("url"),
+                type=c.get("type", "text")
+            )
+            for c in candidates
+        ]
+
+        logger.info(f"✅ Found {len(results)} results in {search_time:.3f}s")
+
+        return SearchResponse(
+            query=request.query,
+            results=results,
+            total=len(results),
+            search_time=round(search_time, 4)
+        )
+
+    except Exception as e:
+        logger.error(f"❌ Search error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Lỗi tìm kiếm.")

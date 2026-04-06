@@ -1,4 +1,4 @@
-# 🎓 BDU Chatbot RAG — Intelligent Admission Consulting System
+# BDU Chatbot RAG — Intelligent Admission Consulting System
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
@@ -12,7 +12,7 @@ Production-ready AI chatbot built with **Corrective RAG (CRAG)** architecture �
 
 ---
 
-## 🔑 Key Technical Highlights
+## Key Technical Highlights
 
 | Capability | Implementation |
 |---|---|
@@ -21,7 +21,7 @@ Production-ready AI chatbot built with **Corrective RAG (CRAG)** architecture �
 | **LLM Integration** | Groq API (LLaMA 3.3 70B) with multi-model failover pool & response caching |
 | **Prompt Engineering** | Task-specific prompts for generation, evaluation, decomposition, and expansion |
 | **Embedding + Vector DB** | Google EmbeddingGemma-300M + Qdrant with cosine similarity search |
-| **Data Pipeline** | Multi-format ingestion (PDF/DOCX/Excel/Image → OCR → Chunk → Index) |
+| **Data Pipeline** | Multi-format ingestion (PDF/DOCX/Excel/Image → Markdown → Chunk → Index) |
 | **REST API** | FastAPI with Pydantic schemas, CORS, structured error handling |
 | **Query Processing** | Decomposition (complex → sub-queries) + Expansion (paraphrase generation + filtering) |
 | **Security** | Prompt injection detection, rate limiting, file validation, input sanitization |
@@ -30,69 +30,22 @@ Production-ready AI chatbot built with **Corrective RAG (CRAG)** architecture �
 
 ---
 
-## ✨ Features
+## Features
 
 | Feature | Description |
 |---|---|
-| 🔍 **CRAG Retriever** | Auto-evaluates & self-corrects retrieval quality |
-| 🧠 **Lazy Query Expansion** | Parallel expansion triggered only when initial results are insufficient |
-| ⚡ **Query Decomposition** | Splits complex multi-intent questions into independent sub-queries |
-| 🛡️ **Security Manager** | Blocks prompt injection, enforces rate limits |
-| 📊 **Admin Dashboard** | Data management, upload documents, chat analytics |
-| 🌐 **REST API** | FastAPI endpoints for external system integration |
-| 💾 **Response Cache** | MD5-based LLM response caching to reduce latency |
-| 🔄 **LLM Failover** | Automatic fallback across model pool on failure |
+| **CRAG Retriever** | Auto-evaluates & self-corrects retrieval quality via LLM grading |
+| **Lazy Query Expansion** | Parallel expansion triggered only when initial results are insufficient |
+| **Query Decomposition** | Splits complex multi-intent questions into independent sub-queries |
+| **Security Manager** | Blocks prompt injection, enforces rate limits per user |
+| **Admin Dashboard** | Data management, upload documents, chat analytics |
+| **REST API** | FastAPI endpoints for external system integration |
+| **Response Cache** | MD5-based LLM response caching to reduce latency |
+| **LLM Failover** | Automatic fallback across model pool on failure |
 
 ---
 
-## 🏗️ System Architecture
-
-```mermaid
-flowchart TB
-    subgraph Client
-        A["👤 User Query"]
-        B["🖥️ Streamlit UI"]
-        C["🌐 REST API (FastAPI)"]
-    end
-
-    subgraph Pipeline["RAG Pipeline"]
-        D["🛡️ Security Manager"]
-        E["✂️ Query Decomposer"]
-        F["🔍 CRAG Retriever"]
-    end
-
-    subgraph Retrieval["CRAG Flow"]
-        G["📦 Qdrant Vector DB"]
-        H["📊 Relevance Evaluator"]
-        I{"Enough CORRECT?"}
-        J["🔄 Query Expansion"]
-        K["🌐 Web Search Fallback"]
-    end
-
-    subgraph Generation
-        L["🤖 Groq LLM (Failover Pool)"]
-        M["📝 Response + Sources"]
-    end
-
-    A --> B & C
-    B & C --> D
-    D --> E
-    E --> F
-    F --> G
-    G --> H
-    H --> I
-    I -- "≥2 CORRECT" --> L
-    I -- "Insufficient" --> J
-    J --> G
-    I -- "0 results" --> K
-    K --> L
-    L --> M
-    M --> B & C
-```
-
----
-
-## 🔄 CRAG Pipeline Flow
+## CRAG Pipeline Flow
 
 ```mermaid
 flowchart LR
@@ -108,7 +61,7 @@ flowchart LR
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Component | Technology |
 |---|---|
@@ -125,11 +78,12 @@ flowchart LR
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 Chatbot_Crag/
 ├── api/                              # REST API layer
+│   ├── __init__.py
 │   ├── main.py                       # FastAPI app (lifespan, CORS, endpoints)
 │   └── schemas.py                    # Pydantic request/response models
 ├── app/                              # Frontend
@@ -161,15 +115,17 @@ Chatbot_Crag/
 │   └── vietnamese-stopwords.txt      # Vietnamese NLP stopwords
 ├── logs/                             # Auto-generated log files
 ├── qdrant_data/                      # Vector database storage
-├── .env.example                      # Environment template
+├── benchmark_simple.py               # Automated evaluation script (PASS/FAIL)
+├── benchmark_questions.txt           # 100 test questions
+├── qdrant_setup.py                   # Vector DB initialization script
+├── .env.example                      # Environment variables template
 ├── requirements.txt
-├── benchmark_simple.py               # Automated evaluation script
 └── README.md
 ```
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Python 3.10+
@@ -217,7 +173,7 @@ uvicorn api.main:app --reload --port 8000
 
 ---
 
-## 🌐 API Reference
+## API Reference
 
 ### `POST /chat`
 
@@ -273,32 +229,32 @@ System health check with component status.
 }
 ```
 
-> 📖 Full interactive docs at **Swagger UI**: `http://localhost:8000/docs`
+> Full interactive docs at **Swagger UI**: `http://localhost:8000/docs`
 
 ---
 
-## 📊 Benchmark Results
+## Benchmark Results
 
 Automated evaluation on 100 real admission questions:
 
 | Result | Count | Rate |
 |---|---|---|
-| ✅ PASS | 82 | 82% |
-| ❌ FAIL (Missing data) | 15 | 15% |
-| ❌ FAIL (Wrong answer) | 3 | 3% |
+| PASS | 82 | 82% |
+| FAIL (Missing data) | 15 | 15% |
+| FAIL (Wrong answer) | 3 | 3% |
 | **Total** | **100** | **100%** |
 
 **Accuracy: 82%** · True error rate: 3% · Avg response time: ~3.8s
 
 ---
 
-## 👨‍💻 Author
+## Author
 
 **Nguyễn Bá Trưởng**
 - Student ID: 18050082
 - Email: 18050082@student.bdu.edu.vn
 - Binh Duong University
 
-## 📄 License
+## License
 
 MIT License — See [LICENSE](LICENSE) for details.
